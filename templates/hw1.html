@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🎬 CATCH-SEAT</title>
+  <style>
+    :root {
+      --bg: #0b0f14; --card:#121821; --muted:#8aa0b4; --text:#e6eef6; --accent:#5fb3ff; --line:#213247;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Apple SD Gothic Neo, "Malgun Gothic", sans-serif; background: var(--bg); color: var(--text); }
+    a { color: var(--accent); text-decoration: none; }
+    header { position: sticky; top:0; backdrop-filter: blur(8px); background: linear-gradient(180deg, rgba(11,15,20,.9), rgba(11,15,20,.6)); border-bottom: 1px solid var(--line); z-index: 10; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    .nav { display:flex; gap: 14px; align-items:center; padding: 12px 0; }
+    .logo { font-weight: 700; letter-spacing: .2px; }
+    main { padding: 24px 0 80px; }
+    .grid { display:grid; gap: 16px; }
+    @media (min-width: 900px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+    .card h2 { margin: 0 0 8px; font-size: 1.25rem; }
+    h1 { font-size: clamp(1.4rem, 1.2rem + 1.2vw, 2rem); margin: 8px 0 2px; }
+    .sub { color: var(--muted); margin: 0 0 18px; font-size:.95rem }
+    .kicker { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .16em; }
+    .pill { display:inline-block; padding: 3px 10px; border-radius: 999px; background: #0e2236; color:#9fd0ff; border: 1px solid var(--line); font-size:.8rem; }
+    ul,ol { margin: 10px 0 0 1.2em; }
+    li { margin: .3em 0; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; }
+    .tag { font-size: .78rem; padding:3px 8px; border:1px solid var(--line); border-radius:999px; color:#a9c2d8; background:#0f1823; }
+    .muted { color: var(--muted); }
+    .hr { height:1px; background: var(--line); margin: 18px 0; }
+    .wire { background: #0e1420; border:1px dashed #2a3c52; border-radius: 12px; padding: 12px; text-align:center; color:var(--muted) }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav" role="navigation" aria-label="상단 내비게이션">
+      <div class="logo">🎬 CATCH-SEAT</div>
+      <span class="pill">/hw1</span>
+      <div style="flex:1"></div>
+      <a href="#psc">Problem Canvas</a>
+      <a href="#solution">솔루션</a>
+      <a href="#spec">기능 명세</a>
+      <a href="#ux">UX</a>
+      <a href="#wire">와이어프레임</a>
+    </div>
+  </header>
+
+  <main class="wrap" role="main">
+    <p class="kicker">Homework 1</p>
+    <h1>영화 오픈/좌석 취소 알림 서비스</h1>
+    <p class="sub">학번: 202001052 | 이름: 김채린</p>
+    <!-- <p class="sub">Problem Statement Canvas, 솔루션 요약, 기능 명세, UX, 와이어프레임 개요</p> -->
+
+    <!-- 1) Problem Statement Canvas -->
+    <section id="psc" class="card" aria-labelledby="psc-title">
+      <h2 id="psc-title">1) Problem Statement Canvas</h2>
+      <div class="grid grid-2">
+        <div>
+          <h3>고객</h3>
+          <ul>
+            <li>인기 영화·특별 상영회·IMAX/4DX 등을 수요가 많은 영화를 예매하려는 관람객</li>
+            <li>좋은 자리를 확보하고 싶은 연인, 가족, 친구 단위 관람객</li>
+            <li>매진으로 인해 좌석을 확보하지 못해 불편을 겪는 영화 팬덤</li>
+          </ul>
+          <div class="hr"></div>
+          <h3>컨텍스트</h3>
+          <ul>
+            <li>인기 영화/특별관은 예매 오픈 직후 빠르게 매진됨</li>
+            <li>예매 오픈 시간을 알기 어려워 오픈 여부를 자주 확인해야 함</li>
+            <li>영화 시작 20분 전까지 무료 취소가 가능 → 언제든 취소표가 나올 수 있으나 알 수 없음</li>
+            <li>상영 종류마다 선호 좌석이 다르지만, 인기 좌석 정보가 없음</li>
+          </ul>
+          <div class="hr"></div>
+          <h3>근본 문제</h3>
+          <ul>
+            <li>언제 예매가 열리고 원하는 좌석이 언제 비는지 알 수 없음</li>
+            <li>좌석 경쟁 치열도를 예측할 수 없어 전략적 선택이 불가능</li>
+          </ul>
+        </div>
+        <div>
+          <h3>감정적 영향</h3>
+          <ul>
+            <li>원하는 자리 확보 실패 → 실망, 좌절, 불공정성 느낌</li>
+            <li>소중한 관람 기회(데이트/팬덤 이벤트 등)를 놓친다는 불안감</li>
+            <li>원하는 좌석을 얻지 못했을 때의 아쉬움과 스트레스</li>
+          </ul>
+          <div class="hr"></div>
+          <h3>정량적 영향</h3>
+          <ul>
+            <li>예매/취소 여부 확인을 위해 수시로 사이트 접속 필요</li>
+            <li>만족스럽지 않은 자리를 원했던 자리와 동일 비용 지불</li>
+            <li>원하는 시간대 예매 실패 → 다른 시간대/날짜로 관람 고려</li>
+          </ul>
+          <div class="hr"></div>
+          <h3>대안 & 단점</h3>
+          <ul>
+            <li>공식 앱/웹 수동 새로고침 → 알림 없음, 시간 소모 큼</li>
+            <li>커뮤니티 정보 → 정확성/속도 부족, 이미 매진일 가능성</li>
+            <li>비공식 대리 예매 → 불법, 추가 비용/보안 위험</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2) 솔루션 3줄 -->
+    <section id="solution" class="card" aria-labelledby="solution-title">
+      <h2 id="solution-title">2) 솔루션 (3줄)</h2>
+      <ul>
+        <li><strong>영화 예매 오픈 알림</strong>: 원하는 영화가 오픈되면 알림</li>
+        <li><strong>좌석 취소 알림</strong>: 원하는 좌석이 비면 알림</li>
+        <li><strong>빅데이터 기반 예측</strong>: 예매 패턴 분석으로 인기 좌석 사전 안내</li>
+      </ul>
+    </section>
+
+    <!-- 3) 기능 명세 -->
+    <section id="spec" class="card" aria-labelledby="spec-title">
+      <h2 id="spec-title">3) 기능 명세</h2>
+      <ul>
+        <li>원하는 영화, 상영관 입력</li>
+        <li>원하는 <em>매진된</em> 좌석 입력</li>
+        <li>영화 오픈 시 <strong>메일 알림</strong></li>
+        <li>좌석 취소 시 <strong>메일 알림</strong></li>
+        <li>사람이 몰릴 것 같은 좌석 <strong>예측</strong></li>
+      </ul>
+    </section>
+
+    <!-- 4) UX -->
+    <section id="ux" class="card" aria-labelledby="ux-title">
+      <h2 id="ux-title">4) 간단한 UX 흐름</h2>
+      <ul>
+        <li>회원가입/로그인</li>
+        <li>영화 오픈 알림 신청 (알림 인원 수, 인기 좌석 안내)</li>
+        <li>좌석 취소 알림 신청 (알림 인원 수 표시)</li>
+        <li>내 페이지 (알림 신청 내역)</li>
+      </ul>
+    </section>
+
+    <!-- 5) 와이어프레임 -->
+    <section id="wire" class="card" aria-labelledby="wire-title">
+      <h2 id="wire-title">5) 와이어프레임 (스케치)</h2>
+      <div class="wire">
+        <img src="{{ url_for('static', filename='media/wireframe.jpg') }}" alt="서비스 와이어프레임" style="max-width:100%; height:auto; border:1px solid #444; border-radius:8px;">
+      </div>
+    </section>
+  </main>
+</body>
+</html>
