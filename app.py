@@ -154,6 +154,41 @@ def logout():
     return redirect(url_for("index"))
 # ---------------------------------------------------
 
+@app.get("/me")
+@login_required
+def me():
+    my_open = MovieOpenAlert.query.filter_by(user_id=current_user.id)\
+                                  .order_by(MovieOpenAlert.id.desc()).all()
+    my_seat = SeatCancelAlert.query.filter_by(user_id=current_user.id)\
+                                   .order_by(SeatCancelAlert.id.desc()).all()
+    return render_template("me.html", title="마이페이지", my_open=my_open, my_seat=my_seat)
+
+@app.post("/me/open/<int:alert_id>/delete")
+@login_required
+def delete_my_open(alert_id):
+    a = MovieOpenAlert.query.filter_by(id=alert_id, user_id=current_user.id).first()
+    if not a:
+        flash("삭제할 항목을 찾을 수 없습니다.", "error")
+        return redirect(url_for("me"))
+    db.session.delete(a)
+    db.session.commit()
+    flash("오픈 알림을 삭제했습니다.", "success")
+    return redirect(url_for("me"))
+
+@app.post("/me/seat/<int:alert_id>/delete")
+@login_required
+def delete_my_seat(alert_id):
+    a = SeatCancelAlert.query.filter_by(id=alert_id, user_id=current_user.id).first()
+    if not a:
+        flash("삭제할 항목을 찾을 수 없습니다.", "error")
+        return redirect(url_for("me"))
+    db.session.delete(a)
+    db.session.commit()
+    flash("좌석 취소 알림을 삭제했습니다.", "success")
+    return redirect(url_for("me"))
+
+
+
 
 if __name__ == "__main__":
     app.run()  # http://127.0.0.1:5000

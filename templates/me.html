@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>마이페이지</h1>
+
+<h2>오픈 알림</h2>
+{% if my_open %}
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>영화</th><th>극장</th><th>상영관</th><th>생성일</th><th>액션</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in my_open %}
+      <tr>
+        <td>{{ a.id }}</td>
+        <td>{{ a.movie }}</td>
+        <td>{{ a.theater }}</td>
+        <td>{{ a.screen or "-" }}</td>
+        <td>{{ a.created_at }}</td>
+        <td>
+          <form method="post" action="/me/open/{{ a.id }}/delete" style="display:inline">
+            <button type="submit">삭제</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="muted">등록한 오픈 알림이 없습니다.</p>
+{% endif %}
+
+<h2 style="margin-top:2rem">좌석 취소 알림</h2>
+{% if my_seat %}
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>영화</th><th>극장</th><th>일시</th><th>좌석</th><th>생성일</th><th>액션</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in my_seat %}
+      <tr>
+        <td>{{ a.id }}</td>
+        <td>{{ a.movie }}</td>
+        <td>{{ a.theater }}</td>
+        <td>{{ a.show_datetime }}</td>
+        <td>{{ a.desired_seats }}</td>
+        <td>{{ a.created_at }}</td>
+        <td>
+          <form method="post" action="/me/seat/{{ a.id }}/delete" style="display:inline">
+            <button type="submit">삭제</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="muted">등록한 좌석 취소 알림이 없습니다.</p>
+{% endif %}
+{% endblock %}
