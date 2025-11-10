@@ -12,13 +12,18 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "dev-secret"
 
 # --- DB 설정 (SQLite 파일) ---
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///catchseat.db"
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(BASEDIR, "catchseat.db")
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + DB_PATH
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
 # Flask 3.x: app context에서 테이블 생성
 with app.app_context():
     db.create_all()
+    # 디버그 출력(경로/존재 여부 확인용)
+    print("DB 경로:", DB_PATH)
+    print("DB 존재?", os.path.exists(DB_PATH))
 # --------------------------------
 
 # ★ LoginManager 설정 (보호 라우트 접근 시 /login으로 보냄)
@@ -61,7 +66,12 @@ def open_alert_form():
             return redirect(url_for("open_alert_form"))
 
         # DB 저장
-        alert = MovieOpenAlert(movie=movie, theater=theater, screen=screen or None)
+        alert = MovieOpenAlert(
+            movie=movie,
+            theater=theater,
+            screen=screen or None,
+            user_id=current_user.id
+            )
         db.session.add(alert)
         db.session.commit()
 
@@ -85,9 +95,12 @@ def seat_alert_form():
 
         # DB 저장
         alert = SeatCancelAlert(
-            movie=movie, theater=theater,
-            show_datetime=show_dt, desired_seats=seats
-        )
+            movie=movie,
+            theater=theater,
+            show_datetime=show_dt,
+            desired_seats=seats,
+            user_id=current_user.id
+            )
         db.session.add(alert)
         db.session.commit()
 
