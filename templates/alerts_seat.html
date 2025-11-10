@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>좌석 취소 알림 신청</h1>
+<div class="card">
+  <form>
+    <label>영화</label>
+    <input type="text" placeholder="예: 듄: 파트2">
+    <label>극장</label>
+    <input type="text" placeholder="예: 메가박스 강남">
+    <label>상영시간</label>
+    <input type="text" placeholder="예: 2025-11-15 19:20">
+    <label>원하는 좌석 (쉼표 구분)</label>
+    <input type="text" placeholder="예: E11,E12">
+    <button type="button">신청 (데모)</button>
+  </form>
+  <p class="muted">※ 데모 뼈대입니다. 다음 커밋에서 동작을 붙입니다.</p>
+</div>
+{% endblock %}
