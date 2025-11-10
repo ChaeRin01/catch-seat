@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>회원가입</h1>
+<div class="card">
+  <form method="post" action="/signup">
+    <input type="email" name="email" placeholder="이메일" required>
+    <input type="password" name="password" placeholder="비밀번호" required>
+    <button type="submit">가입</button>
+  </form>
+  <p class="muted"><a href="/login">이미 계정이 있어요</a></p>
+</div>
+{% endblock %}
