@@ -14,5 +14,9 @@ def home():
 def hw1():
     return render_template("hw1.html")
 
+@app.get("/select")
+def select_service():
+    return render_template("service_select.html", title="서비스 선택")
+
 if __name__=="__main__":
     app.run() #기본 http://127.0.0.1:5000

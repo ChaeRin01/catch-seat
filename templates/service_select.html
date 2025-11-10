@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>원하는 서비스를 선택하세요</h1>
+<p class="muted">오픈 알림(예매 시작 감지) / 좌석 취소 알림(빈좌석 감지)</p>
+
+<div class="card">
+  <h2>예매 오픈 알림</h2>
+  <p>지정한 영화/극장의 예매가 열리면 알려드려요.</p>
+  <a href="/alerts/open"><button>오픈 알림 신청</button></a>
+</div>
+
+<div class="card">
+  <h2>좌석 취소 알림</h2>
+  <p>원하는 좌석이 비는 순간 알려드려요.</p>
+  <a href="/alerts/seat"><button>좌석 취소 알림 신청</button></a>
+</div>
+{% endblock %}
