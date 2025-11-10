@@ -2,17 +2,17 @@
 {% block content %}
 <h1>좌석 취소 알림 신청</h1>
 <div class="card">
-  <form>
+  <form method="post" action="/alerts/seat">
     <label>영화</label>
-    <input type="text" placeholder="예: 듄: 파트2">
+    <input name="movie" type="text" placeholder="예: 듄: 파트2" required>
     <label>극장</label>
-    <input type="text" placeholder="예: 메가박스 강남">
+    <input name="theater" type="text" placeholder="예: 메가박스 강남" required>
     <label>상영시간</label>
-    <input type="text" placeholder="예: 2025-11-15 19:20">
+    <input name="show_datetime" type="text" placeholder="예: 2025-11-15 19:20" required>
     <label>원하는 좌석 (쉼표 구분)</label>
-    <input type="text" placeholder="예: E11,E12">
-    <button type="button">신청 (데모)</button>
+    <input name="desired_seats" type="text" placeholder="예: E11,E12" required>
+    <button type="submit">신청</button>
   </form>
-  <p class="muted">※ 데모 뼈대입니다. 다음 커밋에서 동작을 붙입니다.</p>
+  <p class="muted">※ 최소 동작: 서버에서 값만 검증하고 메시지로 피드백합니다.</p>
 </div>
 {% endblock %}

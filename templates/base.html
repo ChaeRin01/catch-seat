@@ -22,6 +22,18 @@
     <a href="/alerts/open">오픈 알림</a>
     <a href="/alerts/seat">좌석 취소 알림</a>
   </nav>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div>
+      {% for category, msg in messages %}
+        <div class="card" style="border-color:#ddd">
+          <strong>{{ category|upper }}</strong> — {{ msg }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+  
   <hr/>
   {% block content %}{% endblock %}
 </body>

@@ -2,15 +2,15 @@
 {% block content %}
 <h1>예매 오픈 알림 신청</h1>
 <div class="card">
-  <form>
+  <form method="post" action="/alerts/open">
     <label>영화</label>
-    <input type="text" placeholder="예: 듄: 파트2">
+    <input name="movie" type="text" placeholder="예: 듄: 파트2" required>
     <label>극장</label>
-    <input type="text" placeholder="예: 메가박스 강남">
+    <input name="theater" type="text" placeholder="예: 메가박스 강남" required>
     <label>상영관</label>
-    <input type="text" placeholder="예: 컴포트 1관">
-    <button type="button">신청 (데모)</button>
+    <input name="screen" type="text" placeholder="예: 컴포트 1관">
+    <button type="submit">신청</button>
   </form>
-  <p class="muted">※ 데모 뼈대입니다. 다음 커밋에서 동작을 붙입니다.</p>
+  <p class="muted">※ 최소 동작: 서버에서 값만 검증하고 메시지로 피드백합니다.</p>
 </div>
 {% endblock %}
