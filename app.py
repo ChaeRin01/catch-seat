@@ -1,10 +1,10 @@
 # app.py
 import os, sys
-sys.path.append(os.path.dirname(__file__))  # 로컬 모듈 탐색 안전장치
+sys.path.append(os.path.dirname(__file__))
 
 from flask import Flask, render_template, request, redirect, url_for, flash
 from models import db, MovieOpenAlert, SeatCancelAlert, User
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user  # ★ 추가
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
 app = Flask(__name__)
 
@@ -18,7 +18,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + DB_PATH
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
-# Flask 3.x: app context에서 테이블 생성
+# Flask: app context에서 테이블 생성
 with app.app_context():
     db.create_all()
     # 디버그 출력(경로/존재 여부 확인용)
@@ -36,7 +36,7 @@ def load_user(user_id: str):
 
 @app.get("/")
 def index():
-    return "Hello, Flask!"
+    return "This is catch-seat!"
 
 @app.get("/home")
 def home():
