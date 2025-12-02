@@ -1,18 +1,81 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>좌석 취소 알림 신청</h1>
-<div class="card">
-  <form method="post" action="/alerts/seat">
-    <label>영화</label>
-    <input name="movie" type="text" placeholder="예: 듄: 파트2" required>
-    <label>극장</label>
-    <input name="theater" type="text" placeholder="예: 메가박스 강남" required>
-    <label>상영시간</label>
-    <input name="show_datetime" type="text" placeholder="예: 2025-11-15 19:20" required>
-    <label>원하는 좌석 (쉼표 구분)</label>
-    <input name="desired_seats" type="text" placeholder="예: E11,E12" required>
-    <button type="submit">신청</button>
-  </form>
-  <p class="muted">※ 최소 동작: 서버에서 값만 검증하고 메시지로 피드백합니다.</p>
-</div>
+
+<form method="post">
+  <!-- 영화 -->
+  <label>영화</label>
+  <select name="movie" required>
+    <option value="">-- 영화 선택 --</option>
+    {% for mv in movies %}
+      <option value="{{ mv }}">{{ mv }}</option>
+    {% endfor %}
+  </select>
+
+  <!-- 체인 -->
+  <label style="margin-left:1rem;">영화관 체인</label>
+  <select id="chain" required>
+    <option value="">-- 체인 --</option>
+    {% for chain in catalog.keys() %}
+      <option value="{{ chain }}">{{ chain }}</option>
+    {% endfor %}
+  </select>
+
+  <!-- 지점 -->
+  <label style="margin-left:1rem;">지점</label>
+  <select id="theaterSelect" name="theater" required>
+    <option value="">-- 지점 --</option>
+  </select>
+
+  <!-- 상영일시 (더미 showtimes 선택식) -->
+  <label style="margin-left:1rem;">상영일시</label>
+  <select id="showtimeSelect" name="show_datetime" required>
+    <option value="">-- 일시 선택 --</option>
+  </select>
+
+  <!-- 희망좌석 -->
+  <div style="margin-top:1rem;">
+    <label>희망좌석 (쉼표구분, 예: E11,E12)</label>
+    <input type="text" name="desired_seats" required placeholder="E11,E12" />
+  </div>
+
+  <div style="margin-top:1rem;">
+    <button type="submit">저장</button>
+  </div>
+</form>
+
+<script>
+  const CATALOG = {{ catalog|tojson }};
+
+  const chainEl = document.getElementById('chain');
+  const theaterEl = document.getElementById('theaterSelect');
+  const showtimeEl = document.getElementById('showtimeSelect');
+
+  chainEl.addEventListener('change', () => {
+    const chain = chainEl.value;
+    theaterEl.innerHTML = '<option value="">-- 지점 --</option>';
+    showtimeEl.innerHTML = '<option value="">-- 일시 선택 --</option>';
+    if (!chain || !CATALOG[chain]) return;
+
+    Object.keys(CATALOG[chain]).forEach((theater) => {
+      const opt = document.createElement('option');
+      opt.value = theater; opt.textContent = theater;
+      theaterEl.appendChild(opt);
+    });
+  });
+
+  theaterEl.addEventListener('change', () => {
+    const chain = chainEl.value;
+    const theater = theaterEl.value;
+    showtimeEl.innerHTML = '<option value="">-- 일시 선택 --</option>';
+    if (!chain || !theater) return;
+
+    const showtimes = (CATALOG[chain][theater] || {}).showtimes || [];
+    showtimes.forEach((st) => {
+      const opt = document.createElement('option');
+      opt.value = st; opt.textContent = st;
+      showtimeEl.appendChild(opt);
+    });
+  });
+</script>
 {% endblock %}

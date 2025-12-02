@@ -6,6 +6,9 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from models import db, MovieOpenAlert, SeatCancelAlert, User
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
+from catalog import CATALOG, MOVIES
+
+
 app = Flask(__name__)
 
 # 세션/플래시
@@ -78,7 +81,12 @@ def open_alert_form():
         flash(f"[저장됨] 오픈 알림: {movie} / {theater} / {screen or '-'}", "success")
         return redirect(url_for("open_alert_form"))
 
-    return render_template("alerts_open.html", title="오픈 알림 신청")
+    return render_template(
+        "alerts_open.html",
+        title="오픈 알림 신청",
+        catalog=CATALOG,
+        movies=MOVIES
+    )
 
 @app.route("/alerts/seat", methods=["GET", "POST"])
 @login_required   
@@ -107,7 +115,12 @@ def seat_alert_form():
         flash(f"[저장됨] 좌석 취소 알림: {movie} / {theater} / {show_dt} / {seats}", "success")
         return redirect(url_for("seat_alert_form"))
 
-    return render_template("alerts_seat.html", title="좌석 취소 알림 신청")
+    return render_template(
+        "alerts_seat.html",
+        title="좌석 취소 알림 신청",
+        catalog=CATALOG,
+        movies=MOVIES
+    )
 
 # --------------------------------------------------------
 
