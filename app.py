@@ -7,7 +7,8 @@ from models import db, MovieOpenAlert, SeatCancelAlert, User
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
 from catalog import CATALOG, MOVIES
-
+from email_utils import send_email
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -28,6 +29,14 @@ with app.app_context():
     print("DB 경로:", DB_PATH)
     print("DB 존재?", os.path.exists(DB_PATH))
 # --------------------------------
+
+# --- SMTP 설정 (환경변수 기반) ---
+app.config["SMTP_HOST"] = os.environ.get("CATCHSEAT_SMTP_HOST")
+app.config["SMTP_PORT"] = int(os.environ.get("CATCHSEAT_SMTP_PORT", 587))
+app.config["SMTP_USER"] = os.environ.get("CATCHSEAT_SMTP_USER")
+app.config["SMTP_PASSWORD"] = os.environ.get("CATCHSEAT_SMTP_PASSWORD")
+app.config["SMTP_USE_TLS"] = os.environ.get("CATCHSEAT_SMTP_USE_TLS", "true").lower() == "true"
+app.config["SMTP_DEFAULT_SENDER"] = os.environ.get("CATCHSEAT_SMTP_DEFAULT_SENDER")
 
 # ★ LoginManager 설정 (보호 라우트 접근 시 /login으로 보냄)
 login_manager = LoginManager(app)
@@ -200,8 +209,146 @@ def delete_my_seat(alert_id):
     flash("좌석 취소 알림을 삭제했습니다.", "success")
     return redirect(url_for("me"))
 
+@app.route("/debug/test-email")
+@login_required
+def debug_test_email():
+    """
+    SMTP 설정 및 email_utils.send_email이 실제로 동작하는지 확인하기 위한 테스트용 라우트.
+    - 현재 로그인한 유저의 이메일로 테스트 메일을 보냄.
+    - 쿼리스트링 ?to=... 로 다른 주소를 지정할 수도 있음.
+    """
+    to = request.args.get("to") or current_user.email
+
+    if not to:
+        return "받는 이메일 주소가 없습니다. 쿼리스트링 ?to=... 또는 유저 이메일을 설정하세요.", 400
+
+    subject = "[Catch-Seat] SMTP 테스트 메일"
+    body = "이 메일이 도착했다면 Catch-Seat SMTP 설정이 정상 동작 중입니다."
+
+    try:
+        send_email(to, subject, body)
+    except Exception as e:
+        # 에러 내용을 그대로 보여줘야 디버깅하기 쉬움
+        return f"메일 발송 실패: {e}", 500
+
+    return f"테스트 메일을 {to} 로 발송했습니다."
+
+@app.route("/debug/run-checks")
+@login_required
+def debug_run_checks():
+    """
+    디버그용: 현재 DB에 있는 알림들을 모두 확인하고,
+    발송 조건을 만족하는 알림에 대해 이메일을 발송(또는 발송 시도)한다.
+
+    나중에 크롤러 연동 시:
+      - is_open_now(), has_desired_seats() 조건만 중간에 끼워 넣으면 됨.
+    """
+
+    # 순환 import 방지용: 함수 안에서 가져오기
+    from models import MovieOpenAlert, SeatCancelAlert, db
+
+    now = datetime.utcnow()
+    sent_count = 0
+    errors = []
+
+    # 1) 오픈 알림 처리
+    open_alerts = MovieOpenAlert.query.filter_by(active=True).all()
+    for alert in open_alerts:
+        alert.last_checked = now
+
+        # 쿨다운/상태 체크
+        if not alert.can_send_now(now):
+            continue
+
+        # TODO: 나중에 크롤러 연동 시 여기에 조건 추가
+        # if not is_open_now(alert.movie, alert.theater, alert.screen):
+        #     continue
+
+        user = alert.user
+        if not user or not user.email:
+            continue
+
+        subject = f"[Catch-Seat] 영화 오픈 알림 - {alert.movie} / {alert.theater}"
+        body_lines = [
+            "안녕하세요, Catch-Seat 입니다.",
+            "",
+            "요청하신 '영화 오픈 알림' 조건에 해당하는 변화가 감지되었습니다.",
+            f"- 영화: {alert.movie}",
+            f"- 극장: {alert.theater}",
+            f"- 상영관: {alert.screen or '상영관 미지정'}",
+            "",
+            "자세한 예매 상황은 공식 예매 페이지에서 직접 확인해 주세요.",
+            "",
+            "Catch-Seat 드림",
+        ]
+        body = "\n".join(body_lines)
+
+        try:
+            send_email(user.email, subject, body)
+            alert.sent_at = now
+            alert.send_count = (alert.send_count or 0) + 1
+            alert.is_sent = True  # 오픈 알림은 1회 발송 정책
+            sent_count += 1
+        except Exception as e:
+            errors.append(f"OpenAlert id={alert.id}: {e}")
+
+    # 2) 좌석 취소 알림 처리
+    seat_alerts = SeatCancelAlert.query.filter_by(active=True).all()
+    for alert in seat_alerts:
+        alert.last_checked = now
+
+        if not alert.can_send_now(now):
+            continue
+
+        # TODO: 나중에 크롤러 연동 시:
+        # if not has_desired_seats(alert.movie, alert.theater, alert.show_datetime, alert.desired_seats):
+        #     continue
+
+        user = alert.user
+        if not user or not user.email:
+            continue
+
+        subject = f"[Catch-Seat] 좌석 취소 알림 - {alert.movie} / {alert.theater}"
+        body_lines = [
+            "안녕하세요, Catch-Seat 입니다.",
+            "",
+            "요청하신 '좌석 취소 알림' 조건에 해당하는 변화가 감지되었습니다.",
+            f"- 영화: {alert.movie}",
+            f"- 극장: {alert.theater}",
+            f"- 상영 시간: {alert.show_datetime}",
+            f"- 원하는 좌석: {alert.desired_seats}",
+            "",
+            "정확한 잔여 좌석 상황은 공식 예매 페이지에서 확인해 주세요.",
+            "",
+            "Catch-Seat 드림",
+        ]
+        body = "\n".join(body_lines)
+
+        try:
+            send_email(user.email, subject, body)
+            alert.sent_at = now
+            alert.send_count = (alert.send_count or 0) + 1
+            alert.is_sent = True  # 일단 1회 발송 정책 (나중에 바꿀 수 있음)
+            sent_count += 1
+        except Exception as e:
+            errors.append(f"SeatAlert id={alert.id}: {e}")
+
+    db.session.commit()
+
+    # 간단한 결과 페이지
+    msg_lines = [
+        f"run-checks 완료.",
+        f"총 발송 시도 성공 건수: {sent_count}",
+    ]
+    if errors:
+        msg_lines.append("")
+        msg_lines.append("에러 목록:")
+        msg_lines.extend(errors)
+
+    return "<br>".join(msg_lines)
 
 
 
+# -----------------
 if __name__ == "__main__":
     app.run()  # http://127.0.0.1:5000
