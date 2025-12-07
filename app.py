@@ -1,14 +1,22 @@
-# app.py
 import os, sys
 sys.path.append(os.path.dirname(__file__))
 
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    flash,
+    jsonify,
+)
 from models import db, MovieOpenAlert, SeatCancelAlert, User
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
 from catalog import CATALOG, MOVIES
 from email_utils import send_email
 from datetime import datetime
+from crawlers import megabox  # 메가박스 DOLBY 상영정보 크롤링용
 
 app = Flask(__name__)
 
@@ -37,10 +45,8 @@ db.init_app(app)
 # Flask: app context에서 테이블 생성
 with app.app_context():
     db.create_all()
-    # 디버그 출력(경로/존재 여부 확인용)
     print("DB 경로:", DB_PATH)
     print("DB 존재?", os.path.exists(DB_PATH))
-# --------------------------------
 
 # --- SMTP 설정 (환경변수 기반) ---
 app.config["SMTP_HOST"] = os.environ.get("CATCHSEAT_SMTP_HOST")
@@ -50,103 +56,225 @@ app.config["SMTP_PASSWORD"] = os.environ.get("CATCHSEAT_SMTP_PASSWORD")
 app.config["SMTP_USE_TLS"] = os.environ.get("CATCHSEAT_SMTP_USE_TLS", "true").lower() == "true"
 app.config["SMTP_DEFAULT_SENDER"] = os.environ.get("CATCHSEAT_SMTP_DEFAULT_SENDER")
 
-# ★ LoginManager 설정 (보호 라우트 접근 시 /login으로 보냄)
+# ★ LoginManager 설정
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
+
 
 @login_manager.user_loader
 def load_user(user_id: str):
     return User.query.get(int(user_id))
 
+
 @app.get("/")
 def index():
     return "This is catch-seat!"
+
 
 @app.get("/home")
 def home():
     return render_template("home.html", title="홈")
 
-# 과제 전용(숨김): 직접 URL로만 접근
+
 @app.get("/hw1")
 def hw1():
     return render_template("hw1.html")
+
 
 @app.get("/select")
 def select_service():
     return render_template("service_select.html", title="서비스 선택")
 
-# ---- 알림 폼: DB 저장까지 (지금은 보호 안 함; 다음 단계에서 보호 적용) ----
 
+# ---- 오픈 알림 ----
 @app.route("/alerts/open", methods=["GET", "POST"])
-@login_required   
+@login_required
 def open_alert_form():
     if request.method == "POST":
         movie = request.form.get("movie", "").strip()
         theater = request.form.get("theater", "").strip()
         screen = request.form.get("screen", "").strip()
+        date_str = request.form.get("date", "").strip()  # "YYYY-MM-DD"
 
         if not movie or not theater:
             flash("영화와 극장은 필수입니다.", "error")
             return redirect(url_for("open_alert_form"))
 
-        # DB 저장
+        if not date_str:
+            flash("관람 날짜를 선택해주세요.", "error")
+            return redirect(url_for("open_alert_form"))
+
+        date_compact = date_str.replace("-", "")
+        if len(date_compact) != 8 or not date_compact.isdigit():
+            flash("관람 날짜 형식이 올바르지 않습니다.", "error")
+            return redirect(url_for("open_alert_form"))
+
         alert = MovieOpenAlert(
             movie=movie,
             theater=theater,
             screen=screen or None,
-            user_id=current_user.id
-            )
+            user_id=current_user.id,
+            date=date_compact,
+        )
         db.session.add(alert)
         db.session.commit()
 
-        flash(f"[저장됨] 오픈 알림: {movie} / {theater} / {screen or '-'}", "success")
+        flash(
+            f"[저장됨] 오픈 알림: {movie} / {theater} / {screen or '-'} / {date_str}",
+            "success",
+        )
         return redirect(url_for("open_alert_form"))
 
     return render_template(
         "alerts_open.html",
         title="오픈 알림 신청",
         catalog=CATALOG,
-        movies=MOVIES
+        movies=MOVIES,
     )
 
+
+# ---- 좌석 취소 알림 (폼 + 검색 API) ----
+def _parse_seats_status_to_int(seats_status: str) -> int:
+    if not seats_status:
+        return 0
+    seats_status = seats_status.strip()
+    if seats_status.startswith("잔여") and seats_status.endswith("석"):
+        inner = seats_status[2:-1].strip()
+        parts = inner.split()
+        if parts:
+            try:
+                return int(parts[0])
+            except ValueError:
+                return 0
+    return 0
+
+
 @app.route("/alerts/seat", methods=["GET", "POST"])
-@login_required   
+@login_required
 def seat_alert_form():
     if request.method == "POST":
-        movie = request.form.get("movie", "").strip()
-        theater = request.form.get("theater", "").strip()
-        show_dt = request.form.get("show_datetime", "").strip()
-        seats = request.form.get("desired_seats", "").strip()
+        brand_raw = request.form.get("brand", "").strip()
+        brand = (brand_raw or "MEGABOX").upper()
 
-        if not movie or not theater or not show_dt or not seats:
-            flash("모든 필드를 입력하세요.", "error")
+        movie = request.form.get("movie", "").strip()
+        theater = request.form.get("theater", "").strip()  # branch_code
+        date_str = request.form.get("date", "").strip()
+        show_dt = request.form.get("show_datetime", "").strip()
+        screen = request.form.get("screen", "").strip()
+        desired_count_raw = request.form.get("desired_count", "").strip()
+
+        if not theater or not date_str:
+            flash("극장과 날짜를 먼저 선택하고 상영정보를 검색해주세요.", "error")
             return redirect(url_for("seat_alert_form"))
 
-        # DB 저장
+        if not movie or not show_dt or not screen:
+            flash("영화와 상영 시간/상영관을 모두 선택해주세요.", "error")
+            return redirect(url_for("seat_alert_form"))
+
+        if not desired_count_raw or not desired_count_raw.isdigit():
+            flash("원하는 좌석 수를 1 이상의 정수로 입력해주세요.", "error")
+            return redirect(url_for("seat_alert_form"))
+
+        desired_count = int(desired_count_raw)
+        if desired_count <= 0:
+            flash("원하는 좌석 수는 1 이상이어야 합니다.", "error")
+            return redirect(url_for("seat_alert_form"))
+
+        date_compact = date_str.replace("-", "")
+        if len(date_compact) != 8 or not date_compact.isdigit():
+            flash("관람 날짜 형식이 올바르지 않습니다.", "error")
+            return redirect(url_for("seat_alert_form"))
+
+        start_time = None
+        if len(show_dt) >= 5:
+            maybe_time = show_dt[-5:]
+            if ":" in maybe_time:
+                start_time = maybe_time
+
+        if not start_time:
+            flash("상영 시간 형식이 올바르지 않습니다.", "error")
+            return redirect(url_for("seat_alert_form"))
+
+        try:
+            showtimes = megabox.get_showtimes(theater, date_compact)
+        except Exception as e:
+            print("[seat_alert_form] 메가박스 상영정보 크롤링 실패:", e)
+            flash("메가박스 상영정보를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.", "error")
+            return redirect(url_for("seat_alert_form"))
+
+        baseline_available = None
+        for st in showtimes:
+            if st.get("movie_title") != movie:
+                continue
+            if st.get("screen_name") != screen:
+                continue
+            if st.get("start_time") != start_time:
+                continue
+            baseline_available = _parse_seats_status_to_int(st.get("seats_status"))
+            break
+
+        if baseline_available is None:
+            flash("선택하신 상영 정보를 메가박스에서 찾을 수 없습니다. 다시 검색 후 선택해주세요.", "error")
+            return redirect(url_for("seat_alert_form"))
+
         alert = SeatCancelAlert(
+            user_id=current_user.id,
+            brand=brand,
             movie=movie,
             theater=theater,
+            screen=screen or None,
             show_datetime=show_dt,
-            desired_seats=seats,
-            user_id=current_user.id
-            )
+            desired_seats=None,
+            desired_count=desired_count,
+            baseline_available_seats=baseline_available,
+            last_available_seats=baseline_available,
+        )
         db.session.add(alert)
         db.session.commit()
 
-        flash(f"[저장됨] 좌석 취소 알림: {movie} / {theater} / {show_dt} / {seats}", "success")
+        flash(
+            f"[저장됨] 좌석 취소 알림: {brand} / {movie} / "
+            f"{BRANCH_CODE_TO_NAME.get(theater, theater)} / {show_dt} / "
+            f"기준 잔여 {baseline_available}석 / 원하는 {desired_count}석",
+            "success",
+        )
         return redirect(url_for("seat_alert_form"))
 
     return render_template(
         "alerts_seat.html",
         title="좌석 취소 알림 신청",
-        catalog=CATALOG,
-        movies=MOVIES
+        dolby_branches=BRANCH_CODE_TO_NAME,
     )
 
-# --------------------------------------------------------
 
-# ---------- Auth: signup / login / logout ----------
+@app.get("/api/megabox/dolby_showtimes")
+@login_required
+def api_megabox_dolby_showtimes():
+    theater = (request.args.get("theater") or "").strip()
+    date_str = (request.args.get("date") or "").strip()
 
+    if not theater or not date_str:
+        return jsonify({"ok": False, "error": "극장과 날짜를 모두 선택해주세요."}), 400
+
+    date_compact = date_str.replace("-", "")
+    if len(date_compact) != 8 or not date_compact.isdigit():
+        return jsonify({"ok": False, "error": "날짜 형식이 올바르지 않습니다."}), 400
+
+    if theater not in BRANCH_CODE_TO_NAME:
+        return jsonify({"ok": False, "error": "지원하지 않는 DOLBY 지점입니다."}), 400
+
+    try:
+        showtimes = megabox.get_showtimes(theater, date_compact)
+    except Exception as e:
+        print("[api_megabox_dolby_showtimes] 크롤링 실패:", e)
+        return jsonify({"ok": False, "error": "메가박스 상영정보를 불러오는 중 오류가 발생했습니다."}), 500
+
+    return jsonify(
+        {"ok": True, "branch_code": theater, "date": date_str, "showtimes": showtimes}
+    )
+
+
+# ---------- Auth ----------
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
@@ -164,8 +292,8 @@ def signup():
         db.session.commit()
         flash("회원가입 완료. 로그인하세요.", "success")
         return redirect(url_for("login"))
-        # ...
     return render_template("auth_signup.html", title="회원가입")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -182,29 +310,37 @@ def login():
         return redirect(nxt or url_for("select_service"))
     return render_template("auth_login.html", title="로그인")
 
+
 @app.get("/logout")
 @login_required
 def logout():
     logout_user()
     flash("로그아웃되었습니다.", "success")
-    return redirect(url_for("index"))
-# ---------------------------------------------------
+    return redirect(url_for("home"))
 
+
+# ---------- 마이페이지 ----------
 @app.get("/me")
 @login_required
 def me():
-    my_open = MovieOpenAlert.query.filter_by(user_id=current_user.id)\
-                                  .order_by(MovieOpenAlert.id.desc()).all()
-    my_seat = SeatCancelAlert.query.filter_by(user_id=current_user.id)\
-                                   .order_by(SeatCancelAlert.id.desc()).all()
+    my_open = (
+        MovieOpenAlert.query.filter_by(user_id=current_user.id)
+        .order_by(MovieOpenAlert.id.asc())   # ✅ ID 오름차순
+        .all()
+    )
+    my_seat = (
+        SeatCancelAlert.query.filter_by(user_id=current_user.id)
+        .order_by(SeatCancelAlert.id.asc())  # ✅ ID 오름차순
+        .all()
+    )
 
-    # 극장 코드 -> 극장 이름(예: 메가박스 코엑스) 매핑해서 템플릿에 넘겨줄 값 세팅
     for a in my_open:
         a.theater_name = BRANCH_CODE_TO_NAME.get(a.theater, a.theater)
     for a in my_seat:
         a.theater_name = BRANCH_CODE_TO_NAME.get(a.theater, a.theater)
 
     return render_template("me.html", title="마이페이지", my_open=my_open, my_seat=my_seat)
+
 
 @app.post("/me/open/<int:alert_id>/delete")
 @login_required
@@ -218,6 +354,7 @@ def delete_my_open(alert_id):
     flash("오픈 알림을 삭제했습니다.", "success")
     return redirect(url_for("me"))
 
+
 @app.post("/me/seat/<int:alert_id>/delete")
 @login_required
 def delete_my_seat(alert_id):
@@ -230,14 +367,11 @@ def delete_my_seat(alert_id):
     flash("좌석 취소 알림을 삭제했습니다.", "success")
     return redirect(url_for("me"))
 
+
 @app.route("/debug/test-email")
 @login_required
 def debug_test_email():
-    """
-    SMTP 설정 및 email_utils.send_email이 실제로 동작하는지 확인하기 위한 테스트용 라우트.
-    """
     to = request.args.get("to") or current_user.email
-
     if not to:
         return "받는 이메일 주소가 없습니다. 쿼리스트링 ?to=... 또는 유저 이메일을 설정하세요.", 400
 
@@ -251,29 +385,21 @@ def debug_test_email():
 
     return f"테스트 메일을 {to} 로 발송했습니다."
 
+
 @app.route("/debug/run-checks")
 @login_required
 def debug_run_checks():
-    """
-    디버그용: 현재 DB에 있는 알림들을 모두 확인하고,
-    발송 조건을 만족하는 알림에 대해 이메일을 발송(또는 발송 시도)한다.
-    """
-
-    # 순환 import 방지용: 함수 안에서 가져오기
     from models import MovieOpenAlert, SeatCancelAlert, db
 
     now = datetime.utcnow()
     sent_count = 0
     errors = []
 
-    # 1) 오픈 알림 처리
     open_alerts = MovieOpenAlert.query.filter_by(active=True).all()
     for alert in open_alerts:
         alert.last_checked = now
-
         if not alert.can_send_now(now):
             continue
-
         user = alert.user
         if not user or not user.email:
             continue
@@ -297,19 +423,16 @@ def debug_run_checks():
             send_email(user.email, subject, body)
             alert.sent_at = now
             alert.send_count = (alert.send_count or 0) + 1
-            alert.is_sent = True  # 오픈 알림은 1회 발송 정책
+            alert.is_sent = True
             sent_count += 1
         except Exception as e:
             errors.append(f"OpenAlert id={alert.id}: {e}")
 
-    # 2) 좌석 취소 알림 처리
     seat_alerts = SeatCancelAlert.query.filter_by(active=True).all()
     for alert in seat_alerts:
         alert.last_checked = now
-
         if not alert.can_send_now(now):
             continue
-
         user = alert.user
         if not user or not user.email:
             continue
@@ -342,7 +465,7 @@ def debug_run_checks():
     db.session.commit()
 
     msg_lines = [
-        f"run-checks 완료.",
+        "run-checks 완료.",
         f"총 발송 시도 성공 건수: {sent_count}",
     ]
     if errors:
@@ -353,7 +476,5 @@ def debug_run_checks():
     return "<br>".join(msg_lines)
 
 
-
-# -----------------
 if __name__ == "__main__":
-    app.run()  # http://127.0.0.1:5000
+    app.run()

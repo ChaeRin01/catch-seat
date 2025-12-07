@@ -7,17 +7,42 @@
   <table>
     <thead>
       <tr>
-        <th>ID</th><th>영화</th><th>극장</th><th>상영관</th><th>생성일</th><th>액션</th>
+        <th>ID</th>
+        <th>알림 키워드</th>
+        <th>극장</th>
+        <th>상영관</th>
+        <th>관람 날짜</th>
+        <th>신청일</th>
+        <th>액션</th>
       </tr>
     </thead>
     <tbody>
       {% for a in my_open %}
       <tr>
         <td>{{ a.id }}</td>
+        <!-- a.movie = 사용자가 입력한 알림 키워드 -->
         <td>{{ a.movie }}</td>
-        <td>{{ a.theater }}</td>
+        <td>{{ a.theater_name or a.theater }}</td>
         <td>{{ a.screen or "-" }}</td>
-        <td>{{ a.created_at }}</td>
+
+        <!-- 관람 날짜: MovieOpenAlert.date = "YYYYMMDD" -->
+        <td>
+          {% if a.date %}
+            {{ a.date[:4] }}-{{ a.date[4:6] }}-{{ a.date[6:8] }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+
+        <!-- 신청일: created_at에서 연-월-일만 -->
+        <td>
+          {% if a.created_at %}
+            {{ a.created_at.strftime('%Y-%m-%d') }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+
         <td>
           <form method="post" action="/me/open/{{ a.id }}/delete" style="display:inline">
             <button type="submit">삭제</button>
@@ -36,7 +61,13 @@
   <table>
     <thead>
       <tr>
-        <th>ID</th><th>영화</th><th>극장</th><th>일시</th><th>좌석</th><th>생성일</th><th>액션</th>
+        <th>ID</th>
+        <th>영화</th>
+        <th>극장</th>
+        <th>일시</th>
+        <th>원하는 좌석 수</th>
+        <th>신청일</th>
+        <th>액션</th>
       </tr>
     </thead>
     <tbody>
@@ -44,10 +75,27 @@
       <tr>
         <td>{{ a.id }}</td>
         <td>{{ a.movie }}</td>
-        <td>{{ a.theater }}</td>
+        <td>{{ a.theater_name or a.theater }}</td>
         <td>{{ a.show_datetime }}</td>
-        <td>{{ a.desired_seats }}</td>
-        <td>{{ a.created_at }}</td>
+
+        <!-- 원하는 좌석 수: desired_count 기준으로 표시 -->
+        <td>
+          {% if a.desired_count %}
+            {{ a.desired_count }}석
+          {% else %}
+            -
+          {% endif %}
+        </td>
+
+        <!-- 좌석 취소 신청일도 연-월-일만 -->
+        <td>
+          {% if a.created_at %}
+            {{ a.created_at.strftime('%Y-%m-%d') }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+
         <td>
           <form method="post" action="/me/seat/{{ a.id }}/delete" style="display:inline">
             <button type="submit">삭제</button>
@@ -60,4 +108,9 @@
 {% else %}
   <p class="muted">등록한 좌석 취소 알림이 없습니다.</p>
 {% endif %}
+
+<p style="margin-top: 2rem; margin-bottom: 1rem;">
+  <a href="{{ url_for('logout') }}">로그아웃</a>
+</p>
+
 {% endblock %}

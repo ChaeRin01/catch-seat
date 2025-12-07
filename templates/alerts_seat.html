@@ -2,80 +2,222 @@
 {% block content %}
 <h1>좌석 취소 알림 신청</h1>
 
-<form method="post">
-  <!-- 영화 -->
-  <label>영화</label>
-  <select name="movie" required>
-    <option value="">-- 영화 선택 --</option>
-    {% for mv in movies %}
-      <option value="{{ mv }}">{{ mv }}</option>
-    {% endfor %}
-  </select>
+<form method="post" id="seatAlertForm">
+  <!-- 메가박스 전용 브랜드 -->
+  <input type="hidden" name="brand" value="MEGABOX" />
 
-  <!-- 체인 -->
-  <label style="margin-left:1rem;">영화관 체인</label>
-  <select id="chain" required>
-    <option value="">-- 체인 --</option>
-    {% for chain in catalog.keys() %}
-      <option value="{{ chain }}">{{ chain }}</option>
-    {% endfor %}
-  </select>
-
-  <!-- 지점 -->
-  <label style="margin-left:1rem;">지점</label>
-  <select id="theaterSelect" name="theater" required>
-    <option value="">-- 지점 --</option>
-  </select>
-
-  <!-- 상영일시 (더미 showtimes 선택식) -->
-  <label style="margin-left:1rem;">상영일시</label>
-  <select id="showtimeSelect" name="show_datetime" required>
-    <option value="">-- 일시 선택 --</option>
-  </select>
-
-  <!-- 희망좌석 -->
+  <!-- 지점 선택 -->
   <div style="margin-top:1rem;">
-    <label>희망좌석 (쉼표구분, 예: E11,E12)</label>
-    <input type="text" name="desired_seats" required placeholder="E11,E12" />
+    <label for="theaterSelect"><strong>메가박스 DOLBY 지점</strong></label>
+    <select name="theater" id="theaterSelect" required>
+      <option value="">-- 지점 선택 --</option>
+      {% for code, name in dolby_branches.items() %}
+        <option value="{{ code }}">{{ name }}</option>
+      {% endfor %}
+    </select>
   </div>
 
+  <!-- 날짜 선택 -->
   <div style="margin-top:1rem;">
-    <button type="submit">저장</button>
+    <label for="dateInput"><strong>관람 날짜</strong></label>
+    <input type="date" name="date" id="dateInput" required />
+  </div>
+
+  <!-- 상영정보 검색 버튼 -->
+  <div style="margin-top:1rem;">
+    <button type="button" id="searchBtn">상영정보 검색 (메가박스 크롤링)</button>
+  </div>
+
+  <hr style="margin:1.5rem 0;" />
+
+  <!-- 영화 선택 -->
+  <div style="margin-top:0.5rem;">
+    <label for="movieSelect"><strong>영화</strong></label>
+    <select name="movie" id="movieSelect" required>
+      <option value="">-- 먼저 상영정보를 검색하세요 --</option>
+    </select>
+  </div>
+
+  <!-- 상영관 / 시간 선택 -->
+  <div style="margin-top:0.5rem;">
+    <label for="showtimeSelect"><strong>상영관 / 시간</strong></label>
+    <!-- 실제로 서버에 전송되는 값은 hidden input으로 관리하고,
+         이 select는 UI용으로만 사용한다. -->
+    <select id="showtimeSelect" required>
+      <option value="">-- 먼저 영화를 선택하세요 --</option>
+    </select>
+  </div>
+
+  <!-- 서버로 전송될 실제 값들 -->
+  <input type="hidden" name="show_datetime" id="showDatetimeInput" />
+  <input type="hidden" name="screen" id="screenInput" />
+
+  <!-- 원하는 좌석 수 -->
+  <div style="margin-top:1rem;">
+    <label for="desiredCountInput"><strong>원하는 좌석 수</strong></label>
+    <input
+      type="number"
+      name="desired_count"
+      id="desiredCountInput"
+      min="1"
+      max="10"
+      required
+      placeholder="예: 2"
+    />
+  </div>
+
+  <div style="margin-top:1.5rem;">
+    <button type="submit">좌석 취소 알림 신청하기</button>
   </div>
 </form>
 
 <script>
-  const CATALOG = {{ catalog|tojson }};
+  // 현재 검색 결과(메가박스 DOLBY 상영정보)를 메모리 상에 유지
+  let CURRENT_SHOWTIMES = [];
 
-  const chainEl = document.getElementById('chain');
-  const theaterEl = document.getElementById('theaterSelect');
-  const showtimeEl = document.getElementById('showtimeSelect');
+  const theaterEl = document.getElementById("theaterSelect");
+  const dateEl = document.getElementById("dateInput");
+  const searchBtn = document.getElementById("searchBtn");
 
-  chainEl.addEventListener('change', () => {
-    const chain = chainEl.value;
-    theaterEl.innerHTML = '<option value="">-- 지점 --</option>';
-    showtimeEl.innerHTML = '<option value="">-- 일시 선택 --</option>';
-    if (!chain || !CATALOG[chain]) return;
+  const movieEl = document.getElementById("movieSelect");
+  const showtimeEl = document.getElementById("showtimeSelect");
 
-    Object.keys(CATALOG[chain]).forEach((theater) => {
-      const opt = document.createElement('option');
-      opt.value = theater; opt.textContent = theater;
-      theaterEl.appendChild(opt);
-    });
+  const showDatetimeInput = document.getElementById("showDatetimeInput");
+  const screenInput = document.getElementById("screenInput");
+
+  // 상영정보 검색 버튼 클릭 → 메가박스 DOLBY 상영정보 API 호출
+  searchBtn.addEventListener("click", async () => {
+    const theater = theaterEl.value;
+    const date = dateEl.value;
+
+    if (!theater || !date) {
+      alert("지점과 날짜를 먼저 선택해주세요.");
+      return;
+    }
+
+    // UI 초기화
+    CURRENT_SHOWTIMES = [];
+    movieEl.innerHTML = '<option value="">-- 상영정보 로딩 중... --</option>';
+    showtimeEl.innerHTML = '<option value="">-- 먼저 영화를 선택하세요 --</option>';
+    showDatetimeInput.value = "";
+    screenInput.value = "";
+
+    try {
+      const params = new URLSearchParams({
+        theater: theater,
+        date: date,
+      });
+
+      const resp = await fetch(`/api/megabox/dolby_showtimes?${params.toString()}`, {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+        },
+      });
+
+      const data = await resp.json();
+
+      if (!data.ok) {
+        alert(data.error || "상영정보를 불러오는 중 오류가 발생했습니다.");
+        movieEl.innerHTML = '<option value="">-- 상영정보를 불러오지 못했습니다 --</option>';
+        return;
+      }
+
+      CURRENT_SHOWTIMES = data.showtimes || [];
+
+      if (CURRENT_SHOWTIMES.length === 0) {
+        movieEl.innerHTML = '<option value="">-- 선택하신 지점/날짜에 DOLBY 상영이 없습니다 --</option>';
+        return;
+      }
+
+      // 영화 리스트 구성 (중복 제거)
+      const movieSet = new Set();
+      CURRENT_SHOWTIMES.forEach((st) => {
+        if (st.movie_title) {
+          movieSet.add(st.movie_title);
+        }
+      });
+
+      movieEl.innerHTML = '<option value="">-- 영화 선택 --</option>';
+      Array.from(movieSet).forEach((title) => {
+        const opt = document.createElement("option");
+        opt.value = title;
+        opt.textContent = title;
+        movieEl.appendChild(opt);
+      });
+
+      // 상영시간 select 초기화
+      showtimeEl.innerHTML = '<option value="">-- 먼저 영화를 선택하세요 --</option>';
+      showDatetimeInput.value = "";
+      screenInput.value = "";
+    } catch (e) {
+      console.error(e);
+      alert("메가박스 상영정보를 불러오는 중 네트워크 오류가 발생했습니다.");
+      movieEl.innerHTML = '<option value="">-- 상영정보를 불러오지 못했습니다 --</option>';
+    }
   });
 
-  theaterEl.addEventListener('change', () => {
-    const chain = chainEl.value;
-    const theater = theaterEl.value;
-    showtimeEl.innerHTML = '<option value="">-- 일시 선택 --</option>';
-    if (!chain || !theater) return;
+  // 영화 선택 시 → 해당 영화의 상영관/시간 옵션 구성
+  movieEl.addEventListener("change", () => {
+    const selectedMovie = movieEl.value;
+    showtimeEl.innerHTML = '<option value="">-- 상영관/시간 선택 --</option>';
+    showDatetimeInput.value = "";
+    screenInput.value = "";
 
-    const showtimes = (CATALOG[chain][theater] || {}).showtimes || [];
-    showtimes.forEach((st) => {
-      const opt = document.createElement('option');
-      opt.value = st; opt.textContent = st;
+    if (!selectedMovie) {
+      return;
+    }
+
+    const filtered = CURRENT_SHOWTIMES.filter(
+      (st) => st.movie_title === selectedMovie
+    );
+
+    filtered.forEach((st, idx) => {
+      const opt = document.createElement("option");
+      opt.value = String(idx);
+      opt.textContent = `${st.start_time} / ${st.screen_name} / ${st.seats_status}`;
+      opt.dataset.screenName = st.screen_name || "";
+      opt.dataset.startTime = st.start_time || "";
       showtimeEl.appendChild(opt);
     });
+
+    if (filtered.length === 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "-- 선택 가능한 상영정보가 없습니다 --";
+      showtimeEl.appendChild(opt);
+    }
+  });
+
+  // 상영관/시간 선택 시 → hidden input에 실제 값 세팅
+  showtimeEl.addEventListener("change", () => {
+    const sel = showtimeEl.selectedOptions[0];
+    if (!sel) {
+      showDatetimeInput.value = "";
+      screenInput.value = "";
+      return;
+    }
+
+    const date = dateEl.value;
+    const startTime = sel.dataset.startTime || "";
+    const screenName = sel.dataset.screenName || "";
+
+    if (date && startTime) {
+      // 서버에는 "YYYY-MM-DD HH:MM" 형식으로 전달
+      showDatetimeInput.value = `${date} ${startTime}`;
+    } else {
+      showDatetimeInput.value = "";
+    }
+    screenInput.value = screenName;
+  });
+
+  // 폼 submit 시, 상영정보 선택 여부 간단 체크
+  const formEl = document.getElementById("seatAlertForm");
+  formEl.addEventListener("submit", (e) => {
+    if (!showDatetimeInput.value || !screenInput.value) {
+      e.preventDefault();
+      alert("상영관/시간을 선택한 후 알림을 신청해주세요.");
+    }
   });
 </script>
 {% endblock %}
