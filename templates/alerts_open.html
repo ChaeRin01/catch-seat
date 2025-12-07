@@ -3,75 +3,67 @@
 <h1>오픈 알림 신청</h1>
 
 <form method="post">
-  <!-- 영화 -->
-  <label>영화</label>
-  <select name="movie" required>
-    <option value="">-- 영화 선택 --</option>
-    {% for mv in movies %}
-      <option value="{{ mv }}">{{ mv }}</option>
-    {% endfor %}
-  </select>
+  <!-- 영화 키워드 (텍스트 입력) -->
+  <div style="margin-bottom: 0.5rem;">
+    <label for="movie"><strong>영화 제목 키워드</strong></label><br>
+    <input
+      type="text"
+      id="movie"
+      name="movie"
+      placeholder="예: 주토피아, 듄, 반지의 제왕"
+      required
+      style="width: 320px;"
+    >
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+      입력한 단어가 포함된 영화가 해당 지점 DOLBY 상영관에서 예매 가능해지면 알림을 보냅니다.
+      (예: '주토피아' → '주토피아 2'도 포함)
+    </div>
+  </div>
 
-  <!-- 체인 -->
-  <label style="margin-left:1rem;">영화관 체인</label>
-  <select id="chain" required>
-    <option value="">-- 체인 --</option>
-    {% for chain in catalog.keys() %}
-      <option value="{{ chain }}">{{ chain }}</option>
-    {% endfor %}
-  </select>
+  <!-- 영화사 (현재는 메가박스 고정) -->
+  <div style="margin-bottom: 0.5rem;">
+    <label for="vendor"><strong>영화사</strong></label><br>
+    <select id="vendor" name="vendor" disabled style="min-width: 200px;">
+      <option value="megabox" selected>메가박스 (DOLBY CINEMA 전용)</option>
+    </select>
+    <!-- 백엔드에서 vendor가 필요하다면 hidden으로 실제 값 전송 -->
+    <input type="hidden" name="vendor" value="megabox">
+  </div>
 
-  <!-- 지점 -->
-  <label style="margin-left:1rem;">지점</label>
-  <select id="theaterSelect" name="theater" required>
-    <option value="">-- 지점 --</option>
-  </select>
+  <!-- 지점 (메가박스 DOLBY 8관) -->
+  <div style="margin-bottom: 0.5rem;">
+    <label for="theater"><strong>지점 (DOLBY CINEMA)</strong></label><br>
+    <select id="theater" name="theater" required style="min-width: 260px;">
+      <option value="">-- 지점 선택 --</option>
+      <!-- value = 메가박스 brchNo (지점 코드) -->
+      <option value="0019">남양주현대아울렛스페이스원</option>
+      <option value="7011">대구신세계(동대구)</option>
+      <option value="0028">대전신세계아트앤사이언스</option>
+      <option value="4062">송도(트리플스트리트)</option>
+      <option value="0052">수원AK플라자(수원역)</option>
+      <option value="0020">안성스타필드</option>
+      <option value="1351">코엑스</option>
+      <option value="4651">하남스타필드</option>
+    </select>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+      현재는 메가박스 DOLBY CINEMA 8개 지점만 지원합니다.
+    </div>
+  </div>
 
   <!-- 상영관 (선택) -->
-  <label style="margin-left:1rem;">상영관</label>
-  <select id="screenSelect" name="screen">
-    <option value="">(선택)</option>
-  </select>
+  <div style="margin-bottom: 0.5rem;">
+    <label for="screen"><strong>상영관 (선택)</strong></label><br>
+    <select id="screen" name="screen" style="min-width: 220px;">
+      <option value="">전체 DOLBY 상영관</option>
+      <option value="DOLBY CINEMA">DOLBY CINEMA</option>
+    </select>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+      상영관을 선택하지 않으면, 해당 지점의 모든 DOLBY 상영관을 대상으로 알림을 보냅니다.
+    </div>
+  </div>
 
   <div style="margin-top:1rem;">
     <button type="submit">저장</button>
   </div>
 </form>
-
-<script>
-  // 서버에서 전달된 catalog 객체를 JS로 사용하기 위해 JSON 직렬화
-  const CATALOG = {{ catalog|tojson }};
-
-  const chainEl = document.getElementById('chain');
-  const theaterEl = document.getElementById('theaterSelect');
-  const screenEl = document.getElementById('screenSelect');
-
-  chainEl.addEventListener('change', () => {
-    const chain = chainEl.value;
-    theaterEl.innerHTML = '<option value="">-- 지점 --</option>';
-    screenEl.innerHTML = '<option value="">(선택)</option>';
-    if (!chain || !CATALOG[chain]) return;
-
-    // 지점 목록 채우기
-    Object.keys(CATALOG[chain]).forEach((theater) => {
-      const opt = document.createElement('option');
-      opt.value = theater; opt.textContent = theater;
-      theaterEl.appendChild(opt);
-    });
-  });
-
-  theaterEl.addEventListener('change', () => {
-    const chain = chainEl.value;
-    const theater = theaterEl.value;
-    screenEl.innerHTML = '<option value="">(선택)</option>';
-    if (!chain || !theater) return;
-
-    const screens = (CATALOG[chain][theater] || {}).screens || [];
-    screens.forEach((sc) => {
-      const opt = document.createElement('option');
-      opt.value = sc; opt.textContent = sc;
-      screenEl.appendChild(opt);
-    });
-  });
-</script>
 {% endblock %}

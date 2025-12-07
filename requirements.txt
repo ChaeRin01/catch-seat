@@ -1,3 +1,7 @@
 Flask==3.1.2
-Flask-SQLAlchemy
-Flask-Login
+Flask-Login==0.6.3
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.0.44
+requests==2.32.3
+beautifulsoup4==4.14.3
+APScheduler==3.11.1

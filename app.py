@@ -12,6 +12,18 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+# --- 메가박스 DOLBY 지점 코드 -> 지점명 매핑 ---
+BRANCH_CODE_TO_NAME = {
+    "0019": "메가박스 남양주현대아울렛스페이스원",
+    "7011": "메가박스 대구신세계(동대구)",
+    "0028": "메가박스 대전신세계아트앤사이언스",
+    "4062": "메가박스 송도(트리플스트리트)",
+    "0052": "메가박스 수원AK플라자(수원역)",
+    "0020": "메가박스 안성스타필드",
+    "1351": "메가박스 코엑스",
+    "4651": "메가박스 하남스타필드",
+}
+
 # 세션/플래시
 app.config["SECRET_KEY"] = "dev-secret"
 
@@ -152,6 +164,7 @@ def signup():
         db.session.commit()
         flash("회원가입 완료. 로그인하세요.", "success")
         return redirect(url_for("login"))
+        # ...
     return render_template("auth_signup.html", title="회원가입")
 
 @app.route("/login", methods=["GET", "POST"])
@@ -170,6 +183,7 @@ def login():
     return render_template("auth_login.html", title="로그인")
 
 @app.get("/logout")
+@login_required
 def logout():
     logout_user()
     flash("로그아웃되었습니다.", "success")
@@ -183,6 +197,13 @@ def me():
                                   .order_by(MovieOpenAlert.id.desc()).all()
     my_seat = SeatCancelAlert.query.filter_by(user_id=current_user.id)\
                                    .order_by(SeatCancelAlert.id.desc()).all()
+
+    # 극장 코드 -> 극장 이름(예: 메가박스 코엑스) 매핑해서 템플릿에 넘겨줄 값 세팅
+    for a in my_open:
+        a.theater_name = BRANCH_CODE_TO_NAME.get(a.theater, a.theater)
+    for a in my_seat:
+        a.theater_name = BRANCH_CODE_TO_NAME.get(a.theater, a.theater)
+
     return render_template("me.html", title="마이페이지", my_open=my_open, my_seat=my_seat)
 
 @app.post("/me/open/<int:alert_id>/delete")
@@ -214,8 +235,6 @@ def delete_my_seat(alert_id):
 def debug_test_email():
     """
     SMTP 설정 및 email_utils.send_email이 실제로 동작하는지 확인하기 위한 테스트용 라우트.
-    - 현재 로그인한 유저의 이메일로 테스트 메일을 보냄.
-    - 쿼리스트링 ?to=... 로 다른 주소를 지정할 수도 있음.
     """
     to = request.args.get("to") or current_user.email
 
@@ -228,7 +247,6 @@ def debug_test_email():
     try:
         send_email(to, subject, body)
     except Exception as e:
-        # 에러 내용을 그대로 보여줘야 디버깅하기 쉬움
         return f"메일 발송 실패: {e}", 500
 
     return f"테스트 메일을 {to} 로 발송했습니다."
@@ -239,9 +257,6 @@ def debug_run_checks():
     """
     디버그용: 현재 DB에 있는 알림들을 모두 확인하고,
     발송 조건을 만족하는 알림에 대해 이메일을 발송(또는 발송 시도)한다.
-
-    나중에 크롤러 연동 시:
-      - is_open_now(), has_desired_seats() 조건만 중간에 끼워 넣으면 됨.
     """
 
     # 순환 import 방지용: 함수 안에서 가져오기
@@ -256,13 +271,8 @@ def debug_run_checks():
     for alert in open_alerts:
         alert.last_checked = now
 
-        # 쿨다운/상태 체크
         if not alert.can_send_now(now):
             continue
-
-        # TODO: 나중에 크롤러 연동 시 여기에 조건 추가
-        # if not is_open_now(alert.movie, alert.theater, alert.screen):
-        #     continue
 
         user = alert.user
         if not user or not user.email:
@@ -300,10 +310,6 @@ def debug_run_checks():
         if not alert.can_send_now(now):
             continue
 
-        # TODO: 나중에 크롤러 연동 시:
-        # if not has_desired_seats(alert.movie, alert.theater, alert.show_datetime, alert.desired_seats):
-        #     continue
-
         user = alert.user
         if not user or not user.email:
             continue
@@ -328,14 +334,13 @@ def debug_run_checks():
             send_email(user.email, subject, body)
             alert.sent_at = now
             alert.send_count = (alert.send_count or 0) + 1
-            alert.is_sent = True  # 일단 1회 발송 정책 (나중에 바꿀 수 있음)
+            alert.is_sent = True
             sent_count += 1
         except Exception as e:
             errors.append(f"SeatAlert id={alert.id}: {e}")
 
     db.session.commit()
 
-    # 간단한 결과 페이지
     msg_lines = [
         f"run-checks 완료.",
         f"총 발송 시도 성공 건수: {sent_count}",
