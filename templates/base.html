@@ -5,39 +5,286 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>{{ title or "catch-seat" }}</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto;max-width:960px;margin:0 auto;padding:20px;}
-    nav{display:flex;gap:12px;align-items:center;padding:8px 0}
-    nav a{text-decoration:none}
-    .card{border:1px solid #ddd;border-radius:10px;padding:16px;margin:12px 0;}
-    .muted{color:#666;font-size:14px}
-    hr{border:none;border-top:1px solid #eee;margin:12px 0}
-    button{padding:8px 14px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer}
-    button:hover{background:#f5f5f5}
+    :root{
+      --cs-bg: #f3f4f6;
+      --cs-surface: #ffffff;
+      --cs-border: #e5e7eb;
+      --cs-border-strong: #d1d5db;
+      --cs-text: #111827;
+      --cs-text-muted: #6b7280;
+      --cs-accent: #4f46e5;
+      --cs-accent-soft: #eef2ff;
+      --cs-danger: #dc2626;
+      --cs-success: #16a34a;
+    }
+
+    *{box-sizing:border-box;}
+
+    html,body{
+      margin:0;
+      padding:0;
+    }
+
+    body{
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      background: radial-gradient(circle at top, #eef2ff 0, #f9fafb 40%, #f3f4f6 100%);
+      color: var(--cs-text);
+    }
+
+    .cs-layout{
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 16px 20px 32px;
+    }
+
+    /* NAVIGATION */
+    nav{
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0 12px;
+      backdrop-filter: blur(12px);
+      background: linear-gradient(to bottom, rgba(248,250,252,0.94), rgba(248,250,252,0.86));
+      border-bottom: 1px solid rgba(209,213,219,0.7);
+    }
+
+    .nav-left,
+    .nav-links{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .nav-brand{
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #111827;
+    }
+
+    .nav-brand span{
+      font-size: 1.05rem;
+    }
+
+    /* 기본 링크 스타일 */
+    .nav-links .nav-link{
+      text-decoration:none;
+      font-size:0.88rem;
+      color:#4b5563;
+      padding:6px 10px;
+      border-radius:999px;
+      transition: background 0.15s ease, color 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
+    }
+
+    /* hover 시에만 pill 효과 */
+    .nav-links .nav-link:hover{
+      background: var(--cs-accent-soft);
+      color: var(--cs-accent);
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 1px rgba(79,70,229,0.18);
+    }
+
+    /* 포커스 기본 파란 outline 제거 */
+    .nav-links .nav-link:focus{
+      outline: none;
+    }
+
+    /* ★ 현재 페이지 강조: 검정 + 굵게 */
+    .nav-links .nav-link--active{
+      background: transparent;
+      color: #111827;   /* 검정 */
+      font-weight: 700; /* 굵게 */
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* active + hover 시 (원하면 약한 pill) */
+    .nav-links .nav-link--active:hover{
+      background: var(--cs-accent-soft);
+      box-shadow: 0 0 0 1px rgba(79,70,229,0.18);
+      transform: none;
+    }
+
+    /* FLASH MESSAGES */
+    .flash-container{
+      margin-top: 16px;
+    }
+
+    .flash{
+      border-radius:12px;
+      padding:10px 12px;
+      margin-bottom:8px;
+      background: var(--cs-surface);
+      border:1px solid var(--cs-border);
+      font-size:0.86rem;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      box-shadow:0 6px 18px rgba(15,23,42,0.06);
+    }
+
+    .flash-label{
+      font-weight:600;
+      font-size:0.75rem;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      padding:3px 8px;
+      border-radius:999px;
+      background:#e5e7eb;
+      color:#374151;
+      flex-shrink:0;
+    }
+
+    .flash--success .flash-label{
+      background:rgba(22,163,74,0.1);
+      color:var(--cs-success);
+    }
+
+    .flash--error .flash-label,
+    .flash--danger .flash-label{
+      background:rgba(220,38,38,0.1);
+      color:var(--cs-danger);
+    }
+
+    .flash-text{
+      color:#374151;
+    }
+
+    /* GENERIC ELEMENTS */
+    .card{
+      border:1px solid var(--cs-border);
+      border-radius:12px;
+      padding:16px 18px;
+      margin:12px 0;
+      background: var(--cs-surface);
+      box-shadow:0 8px 20px rgba(15,23,42,0.04);
+    }
+
+    .muted{
+      color:var(--cs-text-muted);
+      font-size:0.85rem;
+    }
+
+    hr{
+      border:none;
+      border-top:1px solid var(--cs-border);
+      margin:18px 0;
+    }
+
+    button{
+      padding:8px 14px;
+      border:1px solid var(--cs-border-strong);
+      border-radius:999px;
+      background:#fff;
+      cursor:pointer;
+      font-size:0.9rem;
+      color:#111827;
+      transition:background 0.15s ease,border-color 0.15s ease,box-shadow 0.15s ease,transform 0.08s ease;
+    }
+
+    button:hover{
+      background:#f3f4ff;
+      border-color:var(--cs-accent);
+      box-shadow:0 6px 16px rgba(79,70,229,0.18);
+      transform:translateY(-1px);
+    }
+
+    button:active{
+      transform:translateY(0);
+      box-shadow:none;
+    }
+
+    @media (max-width: 640px){
+      .cs-layout{
+        padding:10px 14px 24px;
+      }
+      nav{
+        padding-top:8px;
+        padding-bottom:10px;
+      }
+      .nav-links{
+        gap:8px;
+      }
+      .nav-links .nav-link{
+        font-size:0.82rem;
+        padding:4px 8px;
+      }
+    }
   </style>
 </head>
-<body>
-  <nav>
-    <a href="/home">홈</a>
-    <a href="/select">서비스 선택</a>
-    <a href="/alerts/open">오픈 알림</a>
-    <a href="/alerts/seat">좌석 취소 알림</a>
-    <a href="/theaters/dolby">상영관 안내</a>
-    <a href="/me">마이페이지</a>
-  </nav>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div>
-      {% for category, msg in messages %}
-        <div class="card" style="border-color:#ddd">
-          <strong>{{ category|upper }}</strong> — {{ msg }}
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-  {% endwith %}
-  
-  <hr/>
-  {% block content %}{% endblock %}
+<body>
+  <div class="cs-layout">
+
+    <nav>
+      <div class="nav-left">
+        <a href="/home" class="nav-brand">
+          <span>CATCH-SEAT</span>
+          <span>🍿</span>
+        </a>
+      </div>
+
+      <div class="nav-links">
+        {% set current = request.path %}
+
+        <a href="/home"
+           class="nav-link {% if current == '/' or current.startswith('/home') %}nav-link--active{% endif %}">
+          홈
+        </a>
+
+        <a href="/select"
+           class="nav-link {% if current.startswith('/select') %}nav-link--active{% endif %}">
+          서비스 선택
+        </a>
+
+        <a href="/alerts/open"
+           class="nav-link {% if current.startswith('/alerts/open') %}nav-link--active{% endif %}">
+          오픈 알림
+        </a>
+
+        <a href="/alerts/seat"
+           class="nav-link {% if current.startswith('/alerts/seat') %}nav-link--active{% endif %}">
+          좌석 취소 알림
+        </a>
+
+        <a href="/theaters/dolby"
+           class="nav-link {% if current.startswith('/theaters/dolby') %}nav-link--active{% endif %}">
+          상영관 안내
+        </a>
+
+        <a href="/me"
+           class="nav-link {% if current.startswith('/me') %}nav-link--active{% endif %}">
+          마이페이지
+        </a>
+      </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, msg in messages %}
+          <div class="flash flash--{{ category|lower }}">
+            <div class="flash-label">{{ category|upper }}</div>
+            <div class="flash-text">{{ msg }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% endwith %}
+
+    <hr/>
+    {% block content %}{% endblock %}
+
+  </div>
 </body>
 </html>

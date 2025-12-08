@@ -1,76 +1,195 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>좌석 취소 알림 신청</h1>
 
-<form method="post" id="seatAlertForm">
-  <!-- 메가박스 전용 브랜드 -->
-  <input type="hidden" name="brand" value="MEGABOX" />
+<style>
+  .seat-page{
+    padding-top: 10px;
+    min-height: calc(100vh - 160px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 
-  <!-- 지점 선택 -->
-  <div style="margin-top:1rem;">
-    <label for="theaterSelect"><strong>메가박스 DOLBY 지점</strong></label>
-    <select name="theater" id="theaterSelect" required>
-      <option value="">-- 지점 선택 --</option>
-      {% for code, name in dolby_branches.items() %}
-        <option value="{{ code }}">{{ name }}</option>
-      {% endfor %}
-    </select>
-  </div>
+  .seat-title{
+    width: 100%;
+    max-width: 820px;
+    margin: 0 0 14px;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
 
-  <!-- 날짜 선택 -->
-  <div style="margin-top:1rem;">
-    <label for="dateInput"><strong>관람 날짜</strong></label>
-    <input type="date" name="date" id="dateInput" required />
-  </div>
+  .seat-card{
+    width: 100%;
+    max-width: 820px; /* 오픈 알림과 동일한 박스 크기 */
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 20px 24px 18px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 16px 32px rgba(15,23,42,0.08);
+  }
 
-  <!-- 상영정보 검색 버튼 -->
-  <div style="margin-top:1rem;">
-    <button type="button" id="searchBtn">상영정보 검색 (메가박스 크롤링)</button>
-  </div>
+  .seat-form{
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 
-  <hr style="margin:1.5rem 0;" />
+  .seat-field{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
 
-  <!-- 영화 선택 -->
-  <div style="margin-top:0.5rem;">
-    <label for="movieSelect"><strong>영화</strong></label>
-    <select name="movie" id="movieSelect" required>
-      <option value="">-- 먼저 상영정보를 검색하세요 --</option>
-    </select>
-  </div>
+  .seat-label{
+    font-size: 0.9rem;
+    color: #111827;
+  }
 
-  <!-- 상영관 / 시간 선택 -->
-  <div style="margin-top:0.5rem;">
-    <label for="showtimeSelect"><strong>상영관 / 시간</strong></label>
-    <!-- 실제로 서버에 전송되는 값은 hidden input으로 관리하고,
-         이 select는 UI용으로만 사용한다. -->
-    <select id="showtimeSelect" required>
-      <option value="">-- 먼저 영화를 선택하세요 --</option>
-    </select>
-  </div>
+  .seat-label strong{
+    font-weight: 600;
+  }
 
-  <!-- 서버로 전송될 실제 값들 -->
-  <input type="hidden" name="show_datetime" id="showDatetimeInput" />
-  <input type="hidden" name="screen" id="screenInput" />
+  .seat-input,
+  .seat-select{
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    padding: 9px 10px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    min-width: 0;
+  }
 
-  <!-- 원하는 좌석 수 -->
-  <div style="margin-top:1rem;">
-    <label for="desiredCountInput"><strong>원하는 좌석 수</strong></label>
-    <input
-      type="number"
-      name="desired_count"
-      id="desiredCountInput"
-      min="1"
-      max="10"
-      required
-      value="1"
-      placeholder="예: 1"
-    />
-  </div>
+  .seat-input:focus,
+  .seat-select:focus{
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 1px rgba(79,70,229,0.25);
+    background: #f9fafb;
+  }
 
-  <div style="margin-top:1.5rem;">
-    <button type="submit">좌석 취소 알림 신청하기</button>
-  </div>
-</form>
+  .seat-actions{
+    margin-top: 16px;
+    text-align: center; /* 하단 신청 버튼 가운데 정렬 */
+  }
+
+  /* 상단 검색 버튼, 하단 신청 버튼 크기 통일 */
+  .seat-actions button,
+  .seat-search button{
+    width: 130px;
+    font-size: 0.9rem;
+  }
+
+  .seat-search{
+    margin-top: 6px;
+    display: flex;          /* 버튼을 flex 컨테이너 안에 두고 */
+    flex-direction: column; /* 세로 방향으로 쌓고 */
+    align-items: center;
+  }
+
+  hr.seat-divider{
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 16px 0;
+  }
+
+  @media (max-width: 640px){
+    .seat-title{
+      font-size: 1.3rem;
+      max-width: 100%;
+      padding: 0 2px;
+    }
+    .seat-card{
+      max-width: 100%;
+      padding: 18px 16px 16px;
+      border-radius: 16px;
+    }
+  }
+</style>
+
+<main class="seat-page">
+  <h1 class="seat-title">💺 좌석 취소 알림 신청</h1>
+
+  <section class="seat-card">
+    <form method="post" id="seatAlertForm" class="seat-form">
+      <!-- 메가박스 전용 브랜드 (실제 전송 값) -->
+      <input type="hidden" name="brand" value="MEGABOX" />
+
+      <!-- 영화사 (현재는 메가박스 고정) -->
+      <div class="seat-field">
+        <label for="vendorSelect" class="seat-label"><strong>영화사</strong></label>
+        <select id="vendorSelect" class="seat-select" disabled>
+          <option value="megabox" selected>메가박스 (DOLBY CINEMA 전용)</option>
+        </select>
+      </div>
+
+      <!-- 지점 선택 -->
+      <div class="seat-field">
+        <label for="theaterSelect" class="seat-label"><strong>지점</strong></label>
+        <select name="theater" id="theaterSelect" class="seat-select" required>
+          <option value="">-- 지점 선택 --</option>
+          {% for code, name in dolby_branches.items() %}
+            <option value="{{ code }}">{{ name|replace('메가박스 ', '') }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- 날짜 선택 -->
+      <div class="seat-field">
+        <label for="dateInput" class="seat-label"><strong>관람 날짜</strong></label>
+        <input type="date" name="date" id="dateInput" class="seat-input" required />
+      </div>
+
+      <!-- 상영정보 검색 버튼 -->
+      <div class="seat-field seat-search">
+        <button type="button" id="searchBtn">상영정보 검색 🔍</button>
+      </div>
+
+      <hr class="seat-divider" />
+
+      <!-- 영화 선택 -->
+      <div class="seat-field">
+        <label for="movieSelect" class="seat-label"><strong>영화</strong></label>
+        <select name="movie" id="movieSelect" class="seat-select" required>
+          <option value="">-- 먼저 상영정보를 검색하세요 --</option>
+        </select>
+      </div>
+
+      <!-- 상영관 / 시간 선택 -->
+      <div class="seat-field">
+        <label for="showtimeSelect" class="seat-label"><strong>상영관 / 시간</strong></label>
+        <!-- 실제로 서버에 전송되는 값은 hidden input으로 관리하고,
+             이 select는 UI용으로만 사용한다. -->
+        <select id="showtimeSelect" class="seat-select" required>
+          <option value="">-- 먼저 영화를 선택하세요 --</option>
+        </select>
+      </div>
+
+      <!-- 서버로 전송될 실제 값들 -->
+      <input type="hidden" name="show_datetime" id="showDatetimeInput" />
+      <input type="hidden" name="screen" id="screenInput" />
+
+      <!-- 원하는 좌석 수 -->
+      <div class="seat-field">
+        <label for="desiredCountInput" class="seat-label"><strong>원하는 좌석 수</strong></label>
+        <input
+          type="number"
+          name="desired_count"
+          id="desiredCountInput"
+          class="seat-input"
+          min="1"
+          max="10"
+          required
+          value="1"
+          placeholder="예: 1"
+        />
+      </div>
+
+      <div class="seat-actions">
+        <button type="submit">신청 📤</button>
+      </div>
+    </form>
+  </section>
+</main>
 
 <script>
   // 현재 검색 결과(메가박스 DOLBY 상영정보)를 메모리 상에 유지

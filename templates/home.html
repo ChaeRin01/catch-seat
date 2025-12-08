@@ -1,6 +1,207 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>catch-seat</h1>
-<p class="muted">와이어프레임대로 차근차근 구현합니다.</p>
-<p><a href="/select">➡︎ 서비스 선택으로 이동</a></p>
+
+<style>
+  .home-hero {
+    min-height: calc(100vh - 140px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px 56px;
+  }
+
+  .home-card {
+    position: relative;
+    max-width: 760px; /* 이전보다 살짝 넓게 */
+    width: 100%;
+    background: radial-gradient(circle at top left, #f3f4ff 0, #ffffff 45%, #f9fafb 100%);
+    border-radius: 20px;
+    padding: 32px 28px 26px;
+    box-shadow: 0 16px 38px rgba(15, 23, 42, 0.15);
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    overflow: hidden;
+  }
+
+  /* 카드 상단 가느다란 라인 (필름/스크린 느낌) */
+  .home-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -20px;
+    right: -20px;
+    height: 3px;
+    background: linear-gradient(90deg, #6366f1, #ec4899, #f97316);
+    opacity: 0.8;
+  }
+
+  .home-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.04);
+    color: #475569;
+    margin-bottom: 16px;
+  }
+
+  .home-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #22c55e;
+  }
+
+  .home-title {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin: 0 0 8px;
+  }
+
+  .home-subtitle {
+    font-size: 0.98rem;
+    color: #6b7280;
+    margin: 0 0 16px;
+  }
+
+  .home-text {
+    font-size: 0.9rem;
+    color: #4b5563;
+    line-height: 1.7;
+    margin: 0 0 18px;
+  }
+
+  .home-list {
+    list-style: none;
+    margin: 0 0 26px;
+    padding: 0;
+  }
+
+  .home-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #374151;
+    line-height: 1.6;
+    padding: 4px 0;
+  }
+
+  .home-list li::before {
+    content: "▸";
+    font-size: 0.9rem;
+    line-height: 1;
+    color: #4f46e5;
+    margin-top: 2px;
+  }
+
+  .home-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  .home-note {
+    font-size: 0.78rem;
+    color: #9ca3af;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: #020617;
+    color: #f9fafb;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border: 1px solid #020617;
+    transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .btn-primary:hover {
+    background: #111827;
+    transform: translateY(-1px);
+    box-shadow: 0 9px 22px rgba(15, 23, 42, 0.3);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  .btn-primary span {
+    margin-left: 6px;
+    font-size: 1rem;
+  }
+
+  @media (max-width: 600px) {
+    .home-card {
+      padding: 24px 18px 20px;
+      border-radius: 18px;
+    }
+
+    .home-title {
+      font-size: 1.7rem;
+    }
+
+    .home-footer {
+      flex-direction: column-reverse;
+      align-items: flex-start;
+    }
+
+    .home-hero {
+      padding-top: 28px;
+    }
+  }
+</style>
+
+<main class="home-hero">
+  <section class="home-card">
+    <div class="home-badge">
+      <span class="home-badge-dot"></span>
+      🎬 실시간 영화 예매 알림 서비스
+    </div>
+
+    <h1 class="home-title">CATCH-SEAT 🎟️</h1>
+
+    <p class="home-subtitle">
+      원하는 상영 회차의 예매 오픈과 좌석 취소를 자동으로 캐치해서, 이메일로 바로 알려주는 영화 예매 알림 서비스입니다.
+    </p>
+
+    <p class="home-text">
+      현재는 <strong>메가박스 DOLBY CINEMA 8개 지점</strong>만 지원하며,
+      사용자가 등록한 영화 키워드·지점·날짜를 기준으로
+      <strong>예매 오픈 시점</strong>과 <strong>좌석이 다시 풀리는 타이밍</strong>을 주기적으로 확인합니다.
+      번거롭게 상영 시간표를 새로고침하지 않아도, 놓치기 쉬운 명당 좌석을 조금 더 편하게 노려볼 수 있습니다.
+    </p>
+
+    <ul class="home-list">
+      <li><strong>예매 오픈 알림</strong> – 등록한 조건에 맞는 상영이 열리면 자동으로 이메일 발송</li>
+      <li><strong>좌석 취소 알림</strong> – 기준 시점 대비 좌석 수가 늘어나면 즉시 감지하여 알림 전송</li>
+      <li><strong>인기 좌석 구역 안내</strong> – 빅데이터 기반으로 분석한 DOLBY 시네마 명당 좌석 정보 제공</li>
+    </ul>
+
+    <div class="home-footer">
+      <p class="home-note">
+        알림 신청은 로그인 후 언제든지 수정·삭제할 수 있습니다.
+      </p>
+      <a href="/select" class="btn-primary">
+        서비스 이용하러 가기
+        <span>➡︎</span>
+      </a>
+    </div>
+  </section>
+</main>
+
 {% endblock %}

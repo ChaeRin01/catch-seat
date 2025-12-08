@@ -1,12 +1,132 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>회원가입</h1>
-<div class="card">
-  <form method="post" action="/signup">
-    <input type="email" name="email" placeholder="이메일" required>
-    <input type="password" name="password" placeholder="비밀번호" required>
-    <button type="submit">가입</button>
-  </form>
-  <p class="muted"><a href="/login">이미 계정이 있어요</a></p>
-</div>
+
+<style>
+  .auth-page{
+    min-height: calc(100vh - 160px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 0 32px;
+  }
+
+  .auth-card{
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 24px 24px 20px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 16px 38px rgba(15,23,42,0.12);
+  }
+
+  .auth-title{
+    margin: 0 0 4px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .auth-subtitle{
+    margin: 0 0 18px;
+    font-size: 0.9rem;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  .auth-form{
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .auth-field{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .auth-label{
+    font-size: 0.85rem;
+    color: #4b5563;
+  }
+
+  .auth-input{
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    padding: 9px 10px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+
+  .auth-input:focus{
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 1px rgba(79,70,229,0.25);
+    background: #f9fafb;
+  }
+
+  .auth-actions{
+    margin-top: 6px;
+  }
+
+  .auth-actions button{
+    width: 100%;
+    font-size: 0.9rem;
+  }
+
+  .auth-footer{
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  .auth-footer a{
+    color: #4f46e5;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .auth-footer a:hover{
+    text-decoration: underline;
+  }
+
+  @media (max-width: 640px){
+    .auth-card{
+      padding: 20px 18px 18px;
+      border-radius: 16px;
+    }
+  }
+</style>
+
+<main class="auth-page">
+  <section class="auth-card">
+    <h1 class="auth-title">회원가입</h1>
+    <p class="auth-subtitle">Catch-Seat 알림을 받기 위한 계정을 만들어 주세요.</p>
+
+    <form class="auth-form" method="post" action="/signup">
+      <div class="auth-field">
+        <label for="email" class="auth-label">이메일</label>
+        <input id="email" type="email" name="email" class="auth-input" placeholder="가입하신 이메일로 알림이 갑니다" required>
+      </div>
+
+      <div class="auth-field">
+        <label for="password" class="auth-label">비밀번호</label>
+        <input id="password" type="password" name="password" class="auth-input" placeholder="비밀번호를 입력하세요" required>
+      </div>
+
+      <div class="auth-actions">
+        <button type="submit">가입</button>
+      </div>
+    </form>
+
+    <p class="auth-footer">
+      이미 계정이 있나요?
+      <a href="/login">로그인</a>
+    </p>
+  </section>
+</main>
+
 {% endblock %}

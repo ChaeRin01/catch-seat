@@ -1,17 +1,138 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>원하는 서비스를 선택하세요</h1>
-<p class="muted">오픈 알림(예매 시작 감지) / 좌석 취소 알림(빈좌석 감지)</p>
 
-<div class="card">
-  <h2>예매 오픈 알림</h2>
-  <p>지정한 영화/극장의 예매가 열리면 알려드려요.</p>
-  <a href="/alerts/open"><button>오픈 알림 신청</button></a>
-</div>
+<style>
+  .service-page{
+    padding-top: 10px;
+    max-width: 760px;
+    margin: 0 auto;
+  }
 
-<div class="card">
-  <h2>좌석 취소 알림</h2>
-  <p>원하는 좌석이 비는 순간 알려드려요.</p>
-  <a href="/alerts/seat"><button>좌석 취소 알림 신청</button></a>
-</div>
+  .service-header{
+    margin-bottom: 22px;
+    text-align: center;
+  }
+
+  .service-title{
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+
+  /* 두 카드를 가로로 나란히, 폭은 카드가 결정 */
+  .service-grid{
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 32px;
+    margin-top: 18px;
+    flex-wrap: nowrap;
+  }
+
+  .service-card{
+    position: relative;
+    width: 300px;           /* 가로폭 고정 */
+    min-height: 300px;      /* 세로폭 확실히 더 길게 */
+    padding: 24px 18px 20px;
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    box-shadow: 0 14px 30px rgba(15,23,42,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .service-icon{
+    font-size: 1.2rem;
+    margin-right: 6px;
+  }
+
+  .service-card h2{
+    margin: 0;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+  }
+
+  /* 문단 폭도 박스 안에서 좁게 */
+  .service-desc{
+    margin: 0;
+    font-size: 0.9rem;
+    color: #4b5563;
+    line-height: 1.7;
+    /* max-width: 220px;       카드 안에서 세로 긴 텍스트 블록 느낌 */
+    text-align: left;
+  }
+
+  .service-actions{
+    margin-top: auto;       /* 버튼을 맨 아래로 밀기 */
+    text-align: center;
+  }
+
+  .service-card button{
+    font-size: 0.88rem;
+  }
+
+  @media (max-width: 640px){
+    .service-page{
+      max-width: 100%;
+    }
+    .service-title{
+      font-size: 1.4rem;
+    }
+
+    .service-grid{
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .service-card{
+      width: 80%;
+      max-width: 320px;
+      min-height: 320px;
+      padding: 20px 16px 18px;
+      border-radius: 16px;
+    }
+
+    .service-desc{
+      max-width: 100%;
+    }
+  }
+</style>
+
+<main class="service-page">
+  <header class="service-header">
+    <h1 class="service-title">원하는 서비스를 선택하세요 ✔</h1>
+  </header>
+
+  <section class="service-grid">
+    <div class="service-card">
+      <h2><span class="service-icon">🎬</span>예매 오픈 알림</h2>
+      <p class="service-desc">
+        아직 오픈 안 된 영화를 예매하고 싶으신가요?<br>
+         지정한 극장의 영화 예매가 열리는 시점을<br>
+         감지해, 이메일로 알려드립니다.
+      </p>
+      <div class="service-actions">
+        <a href="/alerts/open"><button>오픈 알림 신청 ➡️</button></a>
+      </div>
+    </div>
+
+    <div class="service-card">
+      <h2><span class="service-icon">💺</span>좌석 취소 알림</h2>
+      <p class="service-desc">
+        좋은 자리가 취소되면 예매하고 싶으신가요?<br>
+         지정한 상영 회차의 좌석이 다시 풀리면<br>
+         감지하여, 이메일로 안내해 드립니다.
+      </p>
+      <div class="service-actions">
+        <a href="/alerts/seat"><button>좌석 취소 알림 신청 ➡️</button></a>
+      </div>
+    </div>
+  </section>
+</main>
+
 {% endblock %}
