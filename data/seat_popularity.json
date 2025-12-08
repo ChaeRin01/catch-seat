@@ -1,0 +1,878 @@
+{
+  "0019": {
+    "branch_name": "남양주현대아울렛스페이스원",
+    "total_mentions": 91,
+    "top_seats": [
+      {
+        "seat": "I1",
+        "count": 14
+      },
+      {
+        "seat": "H1",
+        "count": 8
+      },
+      {
+        "seat": "H7",
+        "count": 4
+      },
+      {
+        "seat": "F1",
+        "count": 3
+      },
+      {
+        "seat": "I12",
+        "count": 3
+      },
+      {
+        "seat": "G1",
+        "count": 3
+      },
+      {
+        "seat": "J1",
+        "count": 3
+      },
+      {
+        "seat": "J7",
+        "count": 2
+      },
+      {
+        "seat": "G7",
+        "count": 2
+      },
+      {
+        "seat": "H8",
+        "count": 2
+      },
+      {
+        "seat": "H9",
+        "count": 2
+      },
+      {
+        "seat": "H10",
+        "count": 2
+      },
+      {
+        "seat": "H11",
+        "count": 2
+      },
+      {
+        "seat": "H12",
+        "count": 2
+      },
+      {
+        "seat": "H13",
+        "count": 2
+      },
+      {
+        "seat": "H14",
+        "count": 2
+      },
+      {
+        "seat": "H15",
+        "count": 2
+      },
+      {
+        "seat": "H16",
+        "count": 2
+      },
+      {
+        "seat": "H17",
+        "count": 2
+      },
+      {
+        "seat": "H18",
+        "count": 2
+      }
+    ],
+    "zones": [
+      {
+        "label": "A-B열",
+        "score": 0.01098901098901099
+      },
+      {
+        "label": "C-D열",
+        "score": 0.0
+      },
+      {
+        "label": "E-F열",
+        "score": 0.04395604395604396
+      },
+      {
+        "label": "G-H열",
+        "score": 0.5494505494505495
+      },
+      {
+        "label": "I-J열",
+        "score": 0.38461538461538464
+      },
+      {
+        "label": "K-L열",
+        "score": 0.0
+      },
+      {
+        "label": "M-N열",
+        "score": 0.01098901098901099
+      },
+      {
+        "label": "O-P열",
+        "score": 0.0
+      },
+      {
+        "label": "Q-R열",
+        "score": 0.0
+      }
+    ]
+  },
+  "7011": {
+    "branch_name": "대구신세계(동대구)",
+    "total_mentions": 31,
+    "top_seats": [
+      {
+        "seat": "G1",
+        "count": 9
+      },
+      {
+        "seat": "F1",
+        "count": 4
+      },
+      {
+        "seat": "E1",
+        "count": 3
+      },
+      {
+        "seat": "G8",
+        "count": 2
+      },
+      {
+        "seat": "G11",
+        "count": 2
+      },
+      {
+        "seat": "H1",
+        "count": 2
+      },
+      {
+        "seat": "G9",
+        "count": 1
+      },
+      {
+        "seat": "G10",
+        "count": 1
+      },
+      {
+        "seat": "G12",
+        "count": 1
+      },
+      {
+        "seat": "G13",
+        "count": 1
+      },
+      {
+        "seat": "G14",
+        "count": 1
+      },
+      {
+        "seat": "G15",
+        "count": 1
+      },
+      {
+        "seat": "H11",
+        "count": 1
+      },
+      {
+        "seat": "E11",
+        "count": 1
+      },
+      {
+        "seat": "A3",
+        "count": 1
+      }
+    ],
+    "zones": [
+      {
+        "label": "A-B열",
+        "score": 0.03225806451612903
+      },
+      {
+        "label": "C-D열",
+        "score": 0.0
+      },
+      {
+        "label": "E-F열",
+        "score": 0.25806451612903225
+      },
+      {
+        "label": "G-H열",
+        "score": 0.7096774193548387
+      },
+      {
+        "label": "I-J열",
+        "score": 0.0
+      },
+      {
+        "label": "K-L열",
+        "score": 0.0
+      },
+      {
+        "label": "M-N열",
+        "score": 0.0
+      },
+      {
+        "label": "O-P열",
+        "score": 0.0
+      },
+      {
+        "label": "Q-R열",
+        "score": 0.0
+      }
+    ]
+  },
+  "0028": {
+    "branch_name": "대전신세계아트앤사이언스",
+    "total_mentions": 34,
+    "top_seats": [
+      {
+        "seat": "H1",
+        "count": 10
+      },
+      {
+        "seat": "I1",
+        "count": 7
+      },
+      {
+        "seat": "G1",
+        "count": 6
+      },
+      {
+        "seat": "H12",
+        "count": 2
+      },
+      {
+        "seat": "M2",
+        "count": 1
+      },
+      {
+        "seat": "J1",
+        "count": 1
+      },
+      {
+        "seat": "F1",
+        "count": 1
+      },
+      {
+        "seat": "H13",
+        "count": 1
+      },
+      {
+        "seat": "H14",
+        "count": 1
+      },
+      {
+        "seat": "E1",
+        "count": 1
+      },
+      {
+        "seat": "G12",
+        "count": 1
+      },
+      {
+        "seat": "I10",
+        "count": 1
+      },
+      {
+        "seat": "A3",
+        "count": 1
+      }
+    ],
+    "zones": [
+      {
+        "label": "A-B열",
+        "score": 0.029411764705882353
+      },
+      {
+        "label": "C-D열",
+        "score": 0.0
+      },
+      {
+        "label": "E-F열",
+        "score": 0.058823529411764705
+      },
+      {
+        "label": "G-H열",
+        "score": 0.6176470588235294
+      },
+      {
+        "label": "I-J열",
+        "score": 0.2647058823529412
+      },
+      {
+        "label": "K-L열",
+        "score": 0.0
+      },
+      {
+        "label": "M-N열",
+        "score": 0.029411764705882353
+      },
+      {
+        "label": "O-P열",
+        "score": 0.0
+      },
+      {
+        "label": "Q-R열",
+        "score": 0.0
+      }
+    ]
+  },
+  "4062": {
+    "branch_name": "송도(트리플스트리트)",
+    "total_mentions": 34,
+    "top_seats": [
+      {
+        "seat": "H1",
+        "count": 8
+      },
+      {
+        "seat": "F1",
+        "count": 6
+      },
+      {
+        "seat": "G1",
+        "count": 6
+      },
+      {
+        "seat": "I1",
+        "count": 5
+      },
+      {
+        "seat": "H13",
+        "count": 2
+      },
+      {
+        "seat": "G13",
+        "count": 2
+      },
+      {
+        "seat": "I14",
+        "count": 2
+      },
+      {
+        "seat": "J1",
+        "count": 1
+      },
+      {
+        "seat": "I9",
+        "count": 1
+      },
+      {
+        "seat": "L19",
+        "count": 1
+      }
+    ],
+    "zones": [
+      {
+        "label": "A-B열",
+        "score": 0.0
+      },
+      {
+        "label": "C-D열",
+        "score": 0.0
+      },
+      {
+        "label": "E-F열",
+        "score": 0.17647058823529413
+      },
+      {
+        "label": "G-H열",
+        "score": 0.5294117647058824
+      },
+      {
+        "label": "I-J열",
+        "score": 0.2647058823529412
+      },
+      {
+        "label": "K-L열",
+        "score": 0.029411764705882353
+      },
+      {
+        "label": "M-N열",
+        "score": 0.0
+      },
+      {
+        "label": "O-P열",
+        "score": 0.0
+      },
+      {
+        "label": "Q-R열",
+        "score": 0.0
+      }
+    ]
+  },
+  "0052": {
+    "branch_name": "수원AK플라자(수원역)",
+    "total_mentions": 62,
+    "top_seats": [
+      {
+        "seat": "G1",
+        "count": 10
+      },
+      {
+        "seat": "H1",
+        "count": 10
+      },
+      {
+        "seat": "F1",
+        "count": 8
+      },
+      {
+        "seat": "C1",
+        "count": 5
+      },
+      {
+        "seat": "E1",
+        "count": 3
+      },
+      {
+        "seat": "A1",
+        "count": 3
+      },
+      {
+        "seat": "B1",
+        "count": 3
+      },
+      {
+        "seat": "I1",
+        "count": 3
+      },
+      {
+        "seat": "D1",
+        "count": 2
+      },
+      {
+        "seat": "K17",
+        "count": 2
+      },
+      {
+        "seat": "G12",
+        "count": 2
+      },
+      {
+        "seat": "H11",
+        "count": 2
+      },
+      {
+        "seat": "L1",
+        "count": 1
+      },
+      {
+        "seat": "K5",
+        "count": 1
+      },
+      {
+        "seat": "G4",
+        "count": 1
+      },
+      {
+        "seat": "G20",
+        "count": 1
+      },
+      {
+        "seat": "D12",
+        "count": 1
+      },
+      {
+        "seat": "A12",
+        "count": 1
+      },
+      {
+        "seat": "I10",
+        "count": 1
+      },
+      {
+        "seat": "H12",
+        "count": 1
+      }
+    ],
+    "zones": [
+      {
+        "label": "A-B열",
+        "score": 0.11290322580645161
+      },
+      {
+        "label": "C-D열",
+        "score": 0.12903225806451613
+      },
+      {
+        "label": "E-F열",
+        "score": 0.1774193548387097
+      },
+      {
+        "label": "G-H열",
+        "score": 0.45161290322580644
+      },
+      {
+        "label": "I-J열",
+        "score": 0.06451612903225806
+      },
+      {
+        "label": "K-L열",
+        "score": 0.06451612903225806
+      },
+      {
+        "label": "M-N열",
+        "score": 0.0
+      },
+      {
+        "label": "O-P열",
+        "score": 0.0
+      },
+      {
+        "label": "Q-R열",
+        "score": 0.0
+      }
+    ]
+  },
+  "0020": {
+    "branch_name": "안성스타필드",
+    "total_mentions": 25,
+    "top_seats": [
+      {
+        "seat": "H1",
+        "count": 8
+      },
+      {
+        "seat": "G1",
+        "count": 3
+      },
+      {
+        "seat": "I1",
+        "count": 2
+      },
+      {
+        "seat": "H9",
+        "count": 2
+      },
+      {
+        "seat": "H11",
+        "count": 2
+      },
+      {
+        "seat": "M2",
+        "count": 1
+      },
+      {
+        "seat": "F1",
+        "count": 1
+      },
+      {
+        "seat": "H10",
+        "count": 1
+      },
+      {
+        "seat": "H12",
+        "count": 1
+      },
+      {
+        "seat": "I11",
+        "count": 1
+      },
+      {
+        "seat": "H8",
+        "count": 1
+      },
+      {
+        "seat": "F11",
+        "count": 1
+      },
+      {
+        "seat": "A3",
+        "count": 1
+      }
+    ],
+    "zones": [
+      {
+        "label": "A-B열",
+        "score": 0.04
+      },
+      {
+        "label": "C-D열",
+        "score": 0.0
+      },
+      {
+        "label": "E-F열",
+        "score": 0.08
+      },
+      {
+        "label": "G-H열",
+        "score": 0.72
+      },
+      {
+        "label": "I-J열",
+        "score": 0.12
+      },
+      {
+        "label": "K-L열",
+        "score": 0.0
+      },
+      {
+        "label": "M-N열",
+        "score": 0.04
+      },
+      {
+        "label": "O-P열",
+        "score": 0.0
+      },
+      {
+        "label": "Q-R열",
+        "score": 0.0
+      }
+    ]
+  },
+  "1351": {
+    "branch_name": "코엑스",
+    "total_mentions": 102,
+    "top_seats": [
+      {
+        "seat": "G1",
+        "count": 20
+      },
+      {
+        "seat": "F1",
+        "count": 15
+      },
+      {
+        "seat": "H1",
+        "count": 14
+      },
+      {
+        "seat": "I1",
+        "count": 12
+      },
+      {
+        "seat": "K1",
+        "count": 6
+      },
+      {
+        "seat": "J1",
+        "count": 5
+      },
+      {
+        "seat": "G12",
+        "count": 4
+      },
+      {
+        "seat": "E1",
+        "count": 4
+      },
+      {
+        "seat": "A3",
+        "count": 3
+      },
+      {
+        "seat": "D1",
+        "count": 2
+      },
+      {
+        "seat": "L1",
+        "count": 2
+      },
+      {
+        "seat": "G13",
+        "count": 1
+      },
+      {
+        "seat": "G14",
+        "count": 1
+      },
+      {
+        "seat": "H11",
+        "count": 1
+      },
+      {
+        "seat": "F10",
+        "count": 1
+      },
+      {
+        "seat": "J11",
+        "count": 1
+      },
+      {
+        "seat": "M1",
+        "count": 1
+      },
+      {
+        "seat": "I13",
+        "count": 1
+      },
+      {
+        "seat": "F14",
+        "count": 1
+      },
+      {
+        "seat": "E9",
+        "count": 1
+      }
+    ],
+    "zones": [
+      {
+        "label": "A-B열",
+        "score": 0.029411764705882353
+      },
+      {
+        "label": "C-D열",
+        "score": 0.0196078431372549
+      },
+      {
+        "label": "E-F열",
+        "score": 0.23529411764705882
+      },
+      {
+        "label": "G-H열",
+        "score": 0.4215686274509804
+      },
+      {
+        "label": "I-J열",
+        "score": 0.18627450980392157
+      },
+      {
+        "label": "K-L열",
+        "score": 0.08823529411764706
+      },
+      {
+        "label": "M-N열",
+        "score": 0.00980392156862745
+      },
+      {
+        "label": "O-P열",
+        "score": 0.0
+      },
+      {
+        "label": "Q-R열",
+        "score": 0.00980392156862745
+      }
+    ]
+  },
+  "4651": {
+    "branch_name": "하남스타필드",
+    "total_mentions": 73,
+    "top_seats": [
+      {
+        "seat": "I1",
+        "count": 12
+      },
+      {
+        "seat": "G1",
+        "count": 6
+      },
+      {
+        "seat": "J1",
+        "count": 5
+      },
+      {
+        "seat": "K1",
+        "count": 4
+      },
+      {
+        "seat": "F1",
+        "count": 4
+      },
+      {
+        "seat": "H1",
+        "count": 4
+      },
+      {
+        "seat": "E1",
+        "count": 2
+      },
+      {
+        "seat": "G11",
+        "count": 1
+      },
+      {
+        "seat": "G12",
+        "count": 1
+      },
+      {
+        "seat": "G13",
+        "count": 1
+      },
+      {
+        "seat": "G14",
+        "count": 1
+      },
+      {
+        "seat": "G15",
+        "count": 1
+      },
+      {
+        "seat": "G16",
+        "count": 1
+      },
+      {
+        "seat": "G17",
+        "count": 1
+      },
+      {
+        "seat": "G18",
+        "count": 1
+      },
+      {
+        "seat": "G19",
+        "count": 1
+      },
+      {
+        "seat": "H11",
+        "count": 1
+      },
+      {
+        "seat": "H12",
+        "count": 1
+      },
+      {
+        "seat": "H13",
+        "count": 1
+      },
+      {
+        "seat": "H14",
+        "count": 1
+      }
+    ],
+    "zones": [
+      {
+        "label": "A-B열",
+        "score": 0.0
+      },
+      {
+        "label": "C-D열",
+        "score": 0.0
+      },
+      {
+        "label": "E-F열",
+        "score": 0.0821917808219178
+      },
+      {
+        "label": "G-H열",
+        "score": 0.3835616438356164
+      },
+      {
+        "label": "I-J열",
+        "score": 0.4794520547945205
+      },
+      {
+        "label": "K-L열",
+        "score": 0.0547945205479452
+      },
+      {
+        "label": "M-N열",
+        "score": 0.0
+      },
+      {
+        "label": "O-P열",
+        "score": 0.0
+      },
+      {
+        "label": "Q-R열",
+        "score": 0.0
+      }
+    ]
+  }
+}
