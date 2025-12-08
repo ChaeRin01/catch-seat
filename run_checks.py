@@ -549,7 +549,6 @@ def send_seat_cancel_email(
         f"기준 잔여 좌석 수(baseline): {baseline_available}석\n"
         f"현재 잔여 좌석 수: {current_available}석\n"
         f"증가한 좌석 수: {diff}석\n"
-        f"사용자가 원하는 좌석 수: {desired_count}석\n\n"
         f"{brand_label} 예매 페이지에서 좌석 상황을 확인해 주세요.\n\n"
         f"- 이 메일은 자동 발송되었습니다."
     )
@@ -654,9 +653,17 @@ def run_seat_cancel_checks():
                     continue
 
                 current_available = _get_available_seats_from_show(matched_show)
+
+                # --- 여기부터 매진(0석) 처리 추가 ---
                 if current_available is None:
-                    print(f"    · SeatCancelAlert id={alert.id} → showtime에서 잔여 좌석 수를 읽지 못했습니다.")
-                    continue
+                    seats_status = str(matched_show.get("seats_status", "")).strip()
+                    if "매진" in seats_status:
+                        # 매진인 경우는 0석으로 간주
+                        current_available = 0
+                    else:
+                        print(f"    · SeatCancelAlert id={alert.id} → showtime에서 잔여 좌석 수를 읽지 못했습니다.")
+                        continue
+                # --- 매진 처리 끝 ---
 
                 diff = current_available - baseline
 
