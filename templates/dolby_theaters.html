@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>메가박스 돌비시네마 안내</h1>
+
+<section style="margin-top: 1rem; margin-bottom: 2rem;">
+  <p>
+    돌비 시네마(Dolby Cinema)는 Dolby Vision HDR(BT.2100-PQ) 영사 시스템과 Dolby Atmos 음향 시스템을 적용한 프리미엄 상영관입니다.
+    IMAX처럼 고유 화면비를 사용하지 않고, 시네마스코프 또는 비스타비전 비율을 그대로 유지합니다.
+    한국에서는 메가박스에서 돌비 시네마를 관람할 수 있습니다.
+  </p>
+  <p style="margin-top: 0.75rem;">
+    메가박스 돌비 시네마는 극강의 선명함과 압도적인 사운드를 기반으로 완벽한 영화 관람을 목표로 설계된 하이엔드 상영관입니다.
+    모든 돌비 시네마관은 돌비의 엄격한 기준을 충족하도록 제작되어, 어느 지점에서든 동일한 수준의 영상과 음향 퀄리티를 제공합니다.
+  </p>
+</section>
+
+<section style="margin-top: 2rem;">
+  <h2>지점별 상영관 정보 및 인기 좌석 구역 안내</h2>
+
+  {% if theaters %}
+    <div style="margin-top: 1rem;">
+      {% for t in theaters %}
+      <article style="border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+        <h3 style="margin-top: 0; margin-bottom: 0.5rem;">
+          {{ t.name }}
+        </h3>
+
+        <ul style="list-style: none; padding-left: 0; margin: 0 0 0.75rem 0; font-size: 0.95rem;">
+          <li>좌석 수: {{ t.seats }}석</li>
+          <li>열 범위: {{ t.row_range }}</li>
+          <li>좌석 번호: {{ t.number_range }}</li>
+        </ul>
+
+        {% if t.feature %}
+        <p style="margin: 0 0 0.75rem 0; font-size: 0.95rem;">
+          특징: {{ t.feature }}
+        </p>
+        {% endif %}
+
+        <p style="margin: 0; font-size: 0.95rem;">
+          인기 좌석 구역 안내:<br>
+          {{ t.zone_summary }}
+        </p>
+      </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p style="margin-top: 1rem;">등록된 돌비 시네마 지점 정보가 없습니다.</p>
+  {% endif %}
+</section>
+
+{% endblock %}

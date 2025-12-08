@@ -2,6 +2,14 @@
 {% block content %}
 <h1>마이페이지</h1>
 
+<style>
+  /* 알림 발송 완료된 항목 회색 처리 (원하면 나중에 디자인 단계에서 조정) */
+  .alert-done {
+    background-color: #f3f3f3;
+    color: #777;
+  }
+</style>
+
 <h2>오픈 알림</h2>
 {% if my_open %}
   <table>
@@ -13,12 +21,21 @@
         <th>상영관</th>
         <th>관람 날짜</th>
         <th>신청일</th>
-        <th>액션</th>
+        <th>알림 상태</th>
+        <th></th>  {# 삭제 버튼 컬럼 (액션 문구 제거) #}
       </tr>
     </thead>
     <tbody>
       {% for a in my_open %}
-      <tr>
+      {# 알림 발송 완료 여부 추정: 존재할 수 있는 필드들을 최대한 활용 #}
+      {% set open_done = (
+          (a.notified_at is defined and a.notified_at) or
+          (a.sent_at is defined and a.sent_at) or
+          (a.is_active is defined and not a.is_active) or
+          (a.status is defined and a.status == 'DONE')
+        )
+      %}
+      <tr class="{% if open_done %}alert-done{% endif %}">
         <td>{{ a.id }}</td>
         <!-- a.movie = 사용자가 입력한 알림 키워드 -->
         <td>{{ a.movie }}</td>
@@ -43,6 +60,16 @@
           {% endif %}
         </td>
 
+        <!-- 알림 상태: 발송 완료 여부 표시 -->
+        <td>
+          {% if open_done %}
+            발송 완료!
+          {% else %}
+            -
+          {% endif %}
+        </td>
+
+        <!-- 삭제 버튼: 항상 맨 오른쪽 -->
         <td>
           <form method="post" action="/me/open/{{ a.id }}/delete" style="display:inline">
             <button type="submit">삭제</button>
@@ -67,12 +94,21 @@
         <th>일시</th>
         <th>원하는 좌석 수</th>
         <th>신청일</th>
-        <th>액션</th>
+        <th>알림 상태</th>
+        <th></th>  {# 삭제 버튼 컬럼 (액션 문구 제거) #}
       </tr>
     </thead>
     <tbody>
       {% for a in my_seat %}
-      <tr>
+      {# 좌석 취소 알림 발송 완료 여부 추정 #}
+      {% set seat_done = (
+          (a.notified_at is defined and a.notified_at) or
+          (a.sent_at is defined and a.sent_at) or
+          (a.is_active is defined and not a.is_active) or
+          (a.status is defined and a.status == 'DONE')
+        )
+      %}
+      <tr class="{% if seat_done %}alert-done{% endif %}">
         <td>{{ a.id }}</td>
         <td>{{ a.movie }}</td>
         <td>{{ a.theater_name or a.theater }}</td>
@@ -96,6 +132,16 @@
           {% endif %}
         </td>
 
+        <!-- 알림 상태: 발송 완료 여부 표시 -->
+        <td>
+          {% if seat_done %}
+            발송 완료!
+          {% else %}
+            -
+          {% endif %}
+        </td>
+
+        <!-- 삭제 버튼: 항상 맨 오른쪽 -->
         <td>
           <form method="post" action="/me/seat/{{ a.id }}/delete" style="display:inline">
             <button type="submit">삭제</button>

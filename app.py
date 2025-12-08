@@ -17,6 +17,7 @@ from catalog import CATALOG, MOVIES
 from email_utils import send_email
 from datetime import datetime
 from crawlers import megabox  # 메가박스 DOLBY 상영정보 크롤링용
+import json
 
 app = Flask(__name__)
 
@@ -41,6 +42,77 @@ DB_PATH = os.path.join(BASEDIR, "catchseat.db")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + DB_PATH
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
+
+# --- 인기 좌석 구역 요약 데이터 로드 ---
+ZONE_PATH = os.path.join(BASEDIR, "data", "seat_zone_summary.json")
+try:
+    with open(ZONE_PATH, encoding="utf-8") as f:
+        ZONE_SUMMARY = json.load(f)
+except FileNotFoundError:
+    ZONE_SUMMARY = {}
+
+
+def get_zone_summary(branch_code: str) -> str:
+    """브랜치 코드 기준으로 인기 좌석 구역 요약 문구를 반환."""
+    entry = ZONE_SUMMARY.get(branch_code)
+    return entry["zone_summary"] if entry and "zone_summary" in entry else "인기 구역 데이터가 없습니다."
+
+
+# --- 돌비시네마 상영관 기본 정보 (좌석 수/열 범위/좌석 번호/특징) ---
+DOLBY_THEATER_INFO = {
+    "0019": {  # 남양주현대아울렛스페이스원
+        "seats": 290,
+        "row_range": "A-M",
+        "number_range": "1-24번",
+        "feature": "국내 돌비 시네마 중에서 평가가 가장 좋은 상영관입니다.",
+    },
+    "7011": {  # 대구신세계(동대구)
+        "seats": 213,
+        "row_range": "A-J",
+        "number_range": "1-22번",
+        "feature": None,
+    },
+    "0028": {  # 대전신세계아트앤사이언스
+        "seats": 313,
+        "row_range": "A-M",
+        "number_range": "1-26번",
+        "feature": "설계 단계부터 돌비 시네마 전용으로 건설된 유일한 상영관입니다.",
+    },
+    "4062": {  # 송도(트리플스트리트)
+        "seats": 285,
+        "row_range": "A-L",
+        "number_range": "1-25번",
+        "feature": None,
+    },
+    "0052": {  # 수원AK플라자(수원역)
+        "seats": 275,
+        "row_range": "A-M",
+        "number_range": "1-23번",
+        "feature": None,
+    },
+    "0020": {  # 안성스타필드
+        "seats": 254,
+        "row_range": "A-O",
+        "number_range": "1-19번",
+        "feature": None,
+    },
+    "1351": {  # 코엑스
+        "seats": 378,
+        "row_range": "A-R",
+        "number_range": "1-24번",
+        "feature": (
+            "한국 최초로 도입된 돌비 시네마 상영관입니다. "
+            "국내 돌비 시네마 중 유일하게 스코프(2.39:1) 비율의 스크린을 사용하는 상영관입니다. "
+            "2023년 기준, 전 세계 275개 돌비 시네마 중 관람객 수 1위를 기록한 상영관입니다."
+        ),
+    },
+    "4651": {  # 하남스타필드
+        "seats": 336,
+        "row_range": "A-L",
+        "number_range": "1-29번",
+        "feature": "국내 돌비 시네마 가운데 가장 큰 스크린을 보유한 상영관입니다.",
+    },
+}
 
 # Flask: app context에서 테이블 생성
 with app.app_context():
@@ -84,6 +156,32 @@ def hw1():
 @app.get("/select")
 def select_service():
     return render_template("service_select.html", title="서비스 선택")
+
+
+# ---- 메가박스 돌비시네마 소개 페이지 ----
+@app.get("/theaters/dolby")
+def dolby_theaters():
+    """메가박스 돌비시네마 8개 지점 정보 + 인기 좌석 구역 안내 페이지."""
+    theaters = []
+    for code, name in BRANCH_CODE_TO_NAME.items():
+        info = DOLBY_THEATER_INFO.get(code, {})
+        theaters.append(
+            {
+                "code": code,
+                "name": name,
+                "seats": info.get("seats"),
+                "row_range": info.get("row_range"),
+                "number_range": info.get("number_range"),
+                "feature": info.get("feature"),
+                "zone_summary": get_zone_summary(code),
+            }
+        )
+    theaters.sort(key=lambda t: t["name"])
+    return render_template(
+        "dolby_theaters.html",
+        title="메가박스 돌비시네마 안내",
+        theaters=theaters,
+    )
 
 
 # ---- 오픈 알림 ----
@@ -325,12 +423,12 @@ def logout():
 def me():
     my_open = (
         MovieOpenAlert.query.filter_by(user_id=current_user.id)
-        .order_by(MovieOpenAlert.id.asc())   # ✅ ID 오름차순
+        .order_by(MovieOpenAlert.id.asc())
         .all()
     )
     my_seat = (
         SeatCancelAlert.query.filter_by(user_id=current_user.id)
-        .order_by(SeatCancelAlert.id.asc())  # ✅ ID 오름차순
+        .order_by(SeatCancelAlert.id.asc())
         .all()
     )
 

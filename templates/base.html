@@ -21,9 +21,10 @@
     <a href="/select">서비스 선택</a>
     <a href="/alerts/open">오픈 알림</a>
     <a href="/alerts/seat">좌석 취소 알림</a>
+    <a href="/theaters/dolby">상영관 안내</a>
     <a href="/me">마이페이지</a>
-
   </nav>
+
   {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     <div>
@@ -34,7 +35,7 @@
       {% endfor %}
     </div>
   {% endif %}
-{% endwith %}
+  {% endwith %}
   
   <hr/>
   {% block content %}{% endblock %}

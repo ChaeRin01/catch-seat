@@ -33,6 +33,7 @@ SMTP 환경변수:
 import os
 import datetime
 import smtplib
+import json
 from email.mime.text import MIMEText
 from email.utils import formataddr
 
@@ -52,6 +53,28 @@ BRANCH_CODE_TO_NAME = {
     "1351": "메가박스 코엑스",
     "4651": "메가박스 하남스타필드",
 }
+
+# --- 인기 좌석 구역 요약 데이터 로드 (seat_zone_summary.json) ---
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+ZONE_PATH = os.path.join(BASE_DIR, "data", "seat_zone_summary.json")
+
+try:
+    with open(ZONE_PATH, encoding="utf-8") as f:
+        ZONE_SUMMARY = json.load(f)
+except FileNotFoundError:
+    ZONE_SUMMARY = {}
+
+
+def get_zone_summary(branch_code: str) -> str | None:
+    """
+    브랜치 코드 기준으로 인기 좌석 구역 요약 문구를 반환한다.
+    - 데이터가 있으면 zone_summary 문자열 반환
+    - 없으면 None
+    """
+    entry = ZONE_SUMMARY.get(branch_code)
+    if entry and "zone_summary" in entry:
+        return entry["zone_summary"]
+    return None
 
 
 # --- SMTP / 메일 설정 (환경변수 사용) ---
@@ -151,21 +174,45 @@ def send_open_alert_email(
     else:
         date_str = datetime.date.today().strftime("%Y-%m-%d")
 
-    subject = f"[Catch-Seat] '{movie_title}' 예매가 열렸어요!"
-    body = (
-        f"안녕하세요, Catch-Seat입니다.\n\n"
-        f"요청하신 영화 예매 오픈 알림을 알려드립니다.\n\n"
-        f"알림신청 키워드: {keyword}\n"
-        f"영화: {movie_title}\n"
-        f"영화관: {theater_label}\n"
-        f"상영관: {screen}\n"
-        f"날짜: {date_str}\n\n"
-        f"{brand_label} 예매 페이지에서 좌석 상황을 확인해 주세요.\n\n"
-        f"- 이 메일은 자동 발송되었습니다."
+    # 🔎 인기 좌석 구역 요약 (seat_zone_summary.json 기반)
+    zone_summary = get_zone_summary(branch_code)
+
+    # 메일 본문 구성
+    lines = [
+        "안녕하세요, Catch-Seat입니다.",
+        "",
+        "요청하신 영화 예매 오픈 알림을 알려드립니다.",
+        "",
+        f"알림신청 키워드: {keyword}",
+        f"영화: {movie_title}",
+        f"영화관: {theater_label}",
+        f"상영관: {screen}",
+        f"날짜: {date_str}",
+    ]
+
+    # 인기 좌석 구역 안내는 오픈 알림에서만, 데이터가 있는 경우에만 추가
+    if zone_summary:
+        lines.extend(
+            [
+                "",
+                "인기 좌석 구역 안내:",
+                zone_summary,
+            ]
+        )
+
+    lines.extend(
+        [
+            "",
+            f"{brand_label} 예매 페이지에서 좌석 상황을 확인해 주세요.",
+            "",
+            "- 이 메일은 자동 발송되었습니다.",
+        ]
     )
 
+    body = "\n".join(lines)
+
     msg = MIMEText(body, _charset="utf-8")
-    msg["Subject"] = subject
+    msg["Subject"] = f"[Catch-Seat] '{movie_title}' 예매가 열렸어요!"
     msg["From"] = SENDER_HEADER
     msg["To"] = to_email
 
@@ -298,7 +345,7 @@ def run_movie_open_checks():
                       f"keyword='{alert.movie}' / real_title='{real_title or alert.movie}' / "
                       f"theater='{alert.theater}' / screen='{alert.screen}'")
 
-                # 메일 발송 시도 (알림 키워드 + 실제 제목 + 지점명 포함)
+                # 메일 발송 시도 (알림 키워드 + 실제 제목 + 지점명 포함, 인기 좌석 정보 포함)
                 mail_ok = send_open_alert_email(
                     alert,
                     real_movie_title=real_title,
